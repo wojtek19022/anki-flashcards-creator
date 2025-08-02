@@ -22,3 +22,9 @@ def invoke(action, **params):
     if response['error'] is not None:
         raise Exception(response['error'])
     return response['result']
+
+@staticmethod
+def set_up_fields_for_model(fields_list: list) -> dict:
+    values = ['' for el in range(len(fields_list))]
+    fields = dict(zip(fields_list, values))
+    return fields
