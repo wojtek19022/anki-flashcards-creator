@@ -15,13 +15,13 @@ class AnkiNoteGenerator:
         self.anki_client = AnkiClient(self)
 
     def main(self):
-        logging.info("Rozpoczęto tworzenie kart")
+        logging.info("Creating of cards was started")
         if not self.model_name in self.anki_client.get_models_names():
-            logging.error(f'Model o nazwie: {self.model_name} nie znajduje się w ANKI. Spróbuj innej nazwy')
+            logging.error(f'Model with name: {self.model_name} is not on ANKI. Try with different name')
             return 
         
         if self.current_lang not in self.anki_client.get_decks_and_id().keys():
-            logging.error(f'Nie znaleziono talii o nazwie: {self.current_lang} spróbuj innej talii lub sprawdź pisownię')
+            logging.error(f'Cannot find deck with name: {self.current_lang} try again with different name')
             return 
 
         fields = self.anki_client.get_fields_by_model_name(self.model_name)
@@ -32,7 +32,7 @@ class AnkiNoteGenerator:
             back_text = '111'
         )
 
-        logging.info(f'Utworzono kartę w ANKI o ID: {result}')
+        logging.info(f'Created ANKI card with ID: {result}')
 
 if __name__ == "__main__":
     AnkiNoteGenerator().main()
