@@ -40,12 +40,12 @@ class AnkiNoteGenerator:
         
         for row in self.data:
             if row["definition"] not in [note["fields"][self.fields_anki.get("front_text")]["value"] for note in self.cards_in_deck]:
-                # result = self.anki_client.add_note(
-                #     fields = fields,
-                #     front_text = row[self.fields_data.get("front_text")], 
-                #     back_text = row[self.fields_data.get("back_text")],
-                #     example = row[self.fields_data.get("example")]
-                # )
+                result = self.anki_client.add_note(
+                    fields = fields,
+                    front_text = row[self.fields_data.get("front_text")], 
+                    back_text = row[self.fields_data.get("back_text")],
+                    example = row[self.fields_data.get("example")]
+                )
                 logging.info(f'Created ANKI card with ID: {row}')
             else:
                 logging.error("Word is already used for some card in in Anki")
