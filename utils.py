@@ -1,6 +1,7 @@
 import json
 import os
 import urllib.request
+import pathlib
 
 from dotenv import load_dotenv
 
@@ -28,3 +29,12 @@ def set_up_fields_for_model(fields_list: list) -> dict:
     values = ['' for el in range(len(fields_list))]
     fields = dict(zip(fields_list, values))
     return fields
+
+@staticmethod
+def check_excel_data(data: str) -> bool:
+    xlsx_format = "xlsx"
+
+    if os.path.exists(data) and pathlib.Path.suffix(data) == xlsx_format:
+        return True
+    else:
+        return False

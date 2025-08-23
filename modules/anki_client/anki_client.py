@@ -12,12 +12,14 @@ class NoteGenerator:
         self,
         deck: str,
         fields: list,
-        input_test: str, 
-        output_str: str
+        input_str: str, 
+        output_str: str,
+        example: str
     ) -> int:   
         self.card_template['fields'] = set_up_fields_for_model(fields)
-        self.card_template['fields'][self.fields.get("front_text")] = input_test
+        self.card_template['fields'][self.fields.get("front_text")] = input_str
         self.card_template['fields'][self.fields.get("back_text")] = output_str
+        self.card_template['fields'][self.fields.get("example")] = example
         self.card_template['deckName'] = deck    
     
         return self.card_template
@@ -54,15 +56,30 @@ class AnkiClient:
     def set_up_fields(self):
         pass
 
-    def add_note(self, fields, front_text, back_text) -> int:
+    def add_note(self, fields, front_text, back_text, example) -> int:
         result = invoke(
             'addNote', 
             note = self.note_generator.card_from_txt(
                 self.language,
                 fields,
                 front_text,
-                back_text
+                back_text,
+                example
             )
         )
         self.note_generator.on_finish()
+        return result
+
+    def find_all_notes(self):
+        result = invoke(
+            'findCards',
+            query = f"deck:*" 
+        )
+        return result
+
+    def get_cards_details(self, cards_list: list):
+        result = invoke(
+            'cardsInfo',
+            cards = cards_list 
+        )
         return result

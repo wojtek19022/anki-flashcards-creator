@@ -26,7 +26,13 @@ FIELDS = {
   "back_test": "BackText",
   "back_audio": "BackAudio",
   "image": "Image",
-  "add_reverse": "Add reverse"
+  "example": "Example"
+}
+
+FIELDS_EXCEL = {
+  "back_text":"word",
+  "front_text":"definition",
+  "example":"example"
 }
 
 CURR_LANG = '🇬🇧 Angielski'#'🇪🇸 Hiszpański'
