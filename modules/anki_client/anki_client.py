@@ -6,7 +6,7 @@ from constants import FIELDS
 class NoteGenerator:
     def __init__(self, parent):
         self.card_template = parent.card_template
-        self.fields = FIELDS
+        self.fields = parent.fields_anki
 
     def card_from_txt(
         self,
@@ -32,6 +32,7 @@ class AnkiClient:
     def __init__(self, parent):
         self.language = parent.current_lang
         self.card_template = parent.card_template
+        self.fields_anki = parent.fields_anki
         self.note_generator = NoteGenerator(self)
 
     @staticmethod

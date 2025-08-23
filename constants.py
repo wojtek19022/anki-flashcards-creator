@@ -23,7 +23,7 @@ CARD_TMPLT = {
 FIELDS = {
   "front_text": "FrontText",
   "front_audio": "FrontAudio",
-  "back_test": "BackText",
+  "back_text": "BackText",
   "back_audio": "BackAudio",
   "image": "Image",
   "example": "Example"

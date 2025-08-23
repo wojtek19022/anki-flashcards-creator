@@ -12,6 +12,8 @@ class AnkiNoteGenerator:
         self.current_lang = CURR_LANG
         self.card_template = CARD_TMPLT
         self.model_name = MODEL_NAME
+        self.fields_anki = FIELDS
+        self.fields_data = FIELDS_EXCEL
         self.anki_client = AnkiClient(self)
         self.cards_in_deck = [
             card for card in self.anki_client.get_cards_details(self.anki_client.find_all_notes()) \
@@ -19,8 +21,6 @@ class AnkiNoteGenerator:
         ]
         self.data = data
         self.data_cols = []
-        self.fields_anki = FIELDS
-        self.fields_data = FIELDS_EXCEL
 
     def main(self):
         logging.info("Creating of cards was started")
@@ -46,7 +46,7 @@ class AnkiNoteGenerator:
                     back_text = row[self.fields_data.get("back_text")],
                     example = row[self.fields_data.get("example")]
                 )
-                logging.info(f'Created ANKI card with ID: {row}')
+                logging.info(f'Created ANKI card with ID: {result}')
             else:
                 logging.error("Word is already used for some card in in Anki")
             break
