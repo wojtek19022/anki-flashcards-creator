@@ -28,6 +28,7 @@ class AnkiNoteGenerator:
             card for card in self.anki_client.get_cards_details(self.anki_client.find_all_notes()) \
             if card["deckName"] == self.current_lang and card["modelName"] == self.model_name
         ]
+        self.fields = self.anki_client.get_fields_by_model_name(self.model_name)
         self.data = data
         self.data_cols = []
         self.max_threads = max(1, int(psutil.cpu_count() * 0.8)) # Calculate the number of threads to use (80% of available CPU cores)
@@ -42,7 +43,6 @@ class AnkiNoteGenerator:
             logging.error(f'Cannot find deck with name: {self.current_lang} try again with different name')
             return 
 
-        fields = self.anki_client.get_fields_by_model_name(self.model_name)
         self.data = self.excel_worker.excel_to_df(self.data, self.fields_data.get('back_text'))
 
         if not self.data:
@@ -67,7 +67,7 @@ class AnkiNoteGenerator:
         return await asyncio.gather(*tasks)
 
     async def note_creator(self, row):
-        if row["definition"] not in [note["fields"][self.fields_anki.get("front_text")]["value"] for note in self.cards_in_deck]:
+        if row[self.fields_data.get("front_text")] not in [note["fields"][self.fields_anki.get("front_text")]["value"] for note in self.cards_in_deck]:
             audio_upl = ""
             image_upl = ""
             audio_file_name = ""
@@ -97,7 +97,7 @@ class AnkiNoteGenerator:
             
             try:
                 result = self.anki_client.add_note(
-                    fields = fields,
+                    fields = self.fields,
                     front_text = row[self.fields_data.get("front_text")], 
                     back_text = row[self.fields_data.get("back_text")],
                     example = row[self.fields_data.get("example")],
