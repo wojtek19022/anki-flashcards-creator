@@ -19,6 +19,7 @@ class AnkiNoteGenerator:
         self.fields_anki = FIELDS
         self.fields_data = FIELDS_EXCEL
         self.anki_client = AnkiClient(self)
+        self.excel_worker = ExcelWorker(self)
         self.website_scrapper = WebsiteScrapper(self)
         self.cards_in_deck = [
             card for card in self.anki_client.get_cards_details(self.anki_client.find_all_notes()) \
@@ -38,24 +39,50 @@ class AnkiNoteGenerator:
             return 
 
         fields = self.anki_client.get_fields_by_model_name(self.model_name)
-        self.data = ExcelWorker.excel_to_df(self.data)
+        self.data = self.excel_worker.excel_to_df(self.data, self.fields_data.get('back_text'))
 
         if not self.data:
             return
         
-        for row in self.data:
-            if row["definition"] not in [note["fields"][self.fields_anki.get("front_text")]["value"] for note in self.cards_in_deck]:
-                result = self.anki_client.add_note(
-                    fields = fields,
-                    front_text = row[self.fields_data.get("front_text")], 
-                    back_text = row[self.fields_data.get("back_text")],
-                    example = row[self.fields_data.get("example")]
-                )
-                logging.info(f'Created ANKI card with ID: {row}')
+        print(self.data[1:])
+        # for row in self.data[1:]:
+        #     if row["definition"] not in [note["fields"][self.fields_anki.get("front_text")]["value"] for note in self.cards_in_deck]:
+        #         audio_upl = ""
+        #         image_upl = ""
+        #         upl_audio_file = ""
+        #         upl_image_file = ""
 
-                # print("TEST ",WebsiteScrapper.scrape_first_image_and_annotation(get_dict_link_for_lang(self.dict_langs_links, self.current_lang)+f"?q=rozmowa"))
-            else:
-                logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
+        #         soup = self.website_scrapper.request_website(
+        #             get_dict_link_for_lang(self.dict_langs_links, self.current_lang)+f"?q={row[self.fields_data.get('back_text')]}"
+        #         )
+        #         image_url = self.website_scrapper.scrape_first_image(soup)
+        #         audio_url = self.website_scrapper.scrape_first_audio(soup)
+                
+        #         audio_file_name = os.path.basename(audio_url)
+        #         image_file_name = os.path.basename(image_url)
+
+        #         if audio_file_name:
+        #             upl_audio_file = self.anki_client.retrieve_uploaded_file(audio_file_name)
+        #         if image_file_name:
+        #             upl_image_file = self.anki_client.retrieve_uploaded_file(image_file_name)
+                
+        #         if not upl_audio_file and audio_file_name:
+        #             audio_upl = self.anki_client.store_file_in_anki(audio_file_name, audio_url)
+        #         if not image_file_name and image_file_name:
+        #             image_upl = self.anki_client.store_file_in_anki(image_file_name, image_url)
+                
+        #         result = self.anki_client.add_note(
+        #             fields = fields,
+        #             front_text = row[self.fields_data.get("front_text")], 
+        #             back_text = row[self.fields_data.get("back_text")],
+        #             example = row[self.fields_data.get("example")],
+        #             image = f"<div><img src='{image_file_name}'></div>" if image_file_name else "",
+        #             audio = f"[sound:{audio_file_name}]" if audio_file_name else ""
+        #         )
+        #         logging.info(f'Created ANKI card with ID: {result}\nData: {row}')
+
+        #     else:
+        #         logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
             # break
 
 if __name__ == "__main__":

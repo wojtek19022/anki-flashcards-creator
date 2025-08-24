@@ -19,13 +19,15 @@ CARD_TMPLT = {
   "tags": []
 }
 
-DIKI_MAIN_URL = "https://www.diki.pl"
+DIKI_MAIN_URL = "https://www.diki.pl/"
 
 #link do słownika dicki z którego będziemy brać słówka z danego języka
 DICT_LANG_SEARCH_URLS = {
   "🇪🇸 Hiszpański": "https://www.diki.pl/slownik-hiszpanskiego",
-  "🇬🇧 Angielski": "https://www.diki.pl/slownik-angielskiego" 
-  }
+  "🇬🇧 Angielski": "https://www.diki.pl/slownik-angielskiego",
+  "English": "https://www.diki.pl/slownik-angielskiego",
+  "test": "https://www.diki.pl/slownik-angielskiego"
+}
 
 #Do dostosowania jeżeli będzie potrzeba zmiana nazw pól do wypełnienia dla karty
 FIELDS = {
@@ -33,7 +35,8 @@ FIELDS = {
   "front_audio": "FrontAudio",
   "back_text": "Słowo EN",
   "back_audio": "BackAudio",
-  "image": "Image",
+  "image": "Obrazek",
+  "audio": "Audio",
   "example": "Przykład EN"
 }
 
@@ -43,4 +46,4 @@ FIELDS_EXCEL = {
   "example":"example"
 }
 
-CURR_LANG = "English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'
+CURR_LANG = "test" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'

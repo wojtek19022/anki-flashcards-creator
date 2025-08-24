@@ -1,33 +1,43 @@
 from bs4 import BeautifulSoup
 import requests
+from urllib.parse import urljoin
+import os
 
 class WebsiteScrapper:
     def __init__(self, parent):
         self.diki_main_url = parent.diki_main_url
 
-    def scrape_first_image_and_annotation(url):
-        # Send a GET request to the website
+    def request_website(self, url):
         response = requests.get(url)
         
         # Check if the request was successful
         if response.status_code == 200:
             # Parse the HTML content
             soup = BeautifulSoup(response.text, 'html.parser')
-            dictionary_record = soup.find("div", { "class" : "dictionaryEntity" })
-            if dictionary_record:
-                print(dictionary_record)
-                # Find the first image and its annotation
-                first_image = soup.find_all('img')
-                print(first_image)
-                if first_image:
-                    image_url = first_image['src']
-                    # Find the annotation (title or alt text)
-                    annotation = first_image.get('alt', 'No annotation available')
-                    return image_url, annotation
-                else:
-                    return None, "No image found"
-        else:
-            return None, "Failed to retrieve the webpage"
+            return soup
+
+    def scrape_first_image(self, soup):
+        dictionary_record = soup.find("div", {"class": "dictionaryEntity"})
+        if dictionary_record:
+            # Find the first image and its annotation
+            first_image = dictionary_record.find('img')
+            if first_image:
+                image_url = first_image['src']
+                return urljoin(self.diki_main_url, image_url) if 'transcription' not in image_url else "" #not ot return image of transcriptions
+            else:
+                return None
+
+    def scrape_first_audio(self, soup):
+        dictionary_record = soup.find("span", {"class": "recordingsAndTranscriptions"})
+        if dictionary_record:
+            test = dictionary_record.find("span", {"class": "audioIcon"})
+            if not test:
+                return None
+            data_url = test['data-audio-url']
+            if data_url:
+                return urljoin(self.diki_main_url, data_url)
+            else:
+                return None
 
 # # Example usage
 # url = "https://www.diki.pl/slownik-angielskiego?q=rozmowa"

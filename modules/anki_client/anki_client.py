@@ -1,8 +1,6 @@
 from utils import invoke, set_up_fields_for_model
 from dataclasses import dataclass
 
-from constants import FIELDS
-
 class NoteGenerator:
     def __init__(self, parent):
         self.card_template = parent.card_template
@@ -14,18 +12,22 @@ class NoteGenerator:
         fields: list,
         input_str: str, 
         output_str: str,
+        image: str,
+        audio: str,
         example: str
     ) -> int:   
+        """
+        Function prepares ANKI Note to be send to a database - assigns attributes to correct columns
+        """
         self.card_template['fields'] = set_up_fields_for_model(fields)
         self.card_template['fields'][self.fields.get("front_text")] = input_str
         self.card_template['fields'][self.fields.get("back_text")] = output_str
         self.card_template['fields'][self.fields.get("example")] = example
+        self.card_template['fields'][self.fields.get("image")] = image
+        self.card_template['fields'][self.fields.get("audio")] = audio
         self.card_template['deckName'] = deck    
     
         return self.card_template
-
-    def on_finish(self):
-        self.card_template = None
 
 
 class AnkiClient:
@@ -54,18 +56,21 @@ class AnkiClient:
     def get_fields_for_deck():
         result = invoke('getDeckConfig',deck=f"'{self.language}'")
 
-    def add_note(self, fields, front_text, back_text, example) -> int:
+    def add_note(self, fields, front_text, back_text, example, image, audio) -> int:
+
         result = invoke(
             'addNote', 
             note = self.note_generator.card_from_txt(
                 self.language,
-                fields,
-                front_text,
-                back_text,
-                example
+                fields = fields,
+                input_str = front_text,
+                output_str = back_text,
+                example = example,
+                image = image,
+                audio = audio
             )
         )
-        self.note_generator.on_finish()
+
         return result
 
     def find_all_notes(self):
@@ -82,9 +87,17 @@ class AnkiClient:
         )
         return result
 
-    def store_file_in_anki(filename, url):
+    def store_file_in_anki(self, filename, url):
         result = invoke(
             'storeMediaFile',
             filename= filename,
             url= url
         )
+        return result
+
+    def retrieve_uploaded_file(self, filename):
+        result = invoke(
+            'retrieveMediaFile',
+            filename= filename
+        )
+        return result
