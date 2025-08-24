@@ -4,7 +4,7 @@ class ExcelWorker:
     def __init__(self, parent):
         pass
 
-    def filter_df(self, df; pl.DataFrame, filter_col: str) -> pl.DataFrame:
+    def filter_df(self, df: pl.DataFrame, filter_col: str) -> pl.DataFrame:
         """
         Filters DataFrame by a selected column
         """

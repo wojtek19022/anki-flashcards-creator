@@ -25,19 +25,26 @@ class WebsiteScrapper:
                 image_url = first_image['src']
                 return urljoin(self.diki_main_url, image_url) if 'transcription' not in image_url else "" #not ot return image of transcriptions
             else:
-                return None
+                return ""
 
     def scrape_first_audio(self, soup):
         dictionary_record = soup.find("span", {"class": "recordingsAndTranscriptions"})
         if dictionary_record:
-            test = dictionary_record.find("span", {"class": "audioIcon"})
-            if not test:
-                return None
-            data_url = test['data-audio-url']
+
+            audio = dictionary_record.find_all("span", {"class": "audioIcon"})
+            if not audio:
+                return ""
+
+            if len(audio) > 1:
+                audio = audio[1]
+            else:
+                audio = audio[0]
+
+            data_url = audio['data-audio-url']
             if data_url:
                 return urljoin(self.diki_main_url, data_url)
             else:
-                return None
+                return ""
 
 # # Example usage
 # url = "https://www.diki.pl/slownik-angielskiego?q=rozmowa"
