@@ -72,6 +72,8 @@ class AnkiNoteGenerator:
             image_upl = ""
             audio_file_name = ""
             image_file_name = ""
+            audio_url = ""
+            image_url = ""
             upl_audio_file = ""
             upl_image_file = ""
 
@@ -82,7 +84,9 @@ class AnkiNoteGenerator:
                 image_url = self.website_scrapper.scrape_first_image(soup)
                 audio_url = self.website_scrapper.scrape_first_audio(soup)
             
+            if audio_url:
                 audio_file_name = os.path.basename(audio_url)
+            if image_url:
                 image_file_name = os.path.basename(image_url)
 
             if audio_file_name:
@@ -108,7 +112,7 @@ class AnkiNoteGenerator:
                     audio = row.get("audio")
                 )
                 logging.info(f'Created ANKI card with ID: {result}\nData: {row}')
-            except Exception as ex:
+            except Exception:
                 logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
         else:
             logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
