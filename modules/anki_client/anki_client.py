@@ -54,9 +54,6 @@ class AnkiClient:
     def get_fields_for_deck():
         result = invoke('getDeckConfig',deck=f"'{self.language}'")
 
-    def set_up_fields(self):
-        pass
-
     def add_note(self, fields, front_text, back_text, example) -> int:
         result = invoke(
             'addNote', 
@@ -84,3 +81,10 @@ class AnkiClient:
             cards = cards_list 
         )
         return result
+
+    def store_file_in_anki(filename, url):
+        result = invoke(
+            'storeMediaFile',
+            filename= filename,
+            url= url
+        )

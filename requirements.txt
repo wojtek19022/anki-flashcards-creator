@@ -1,3 +1,8 @@
 python-dotenv==1.1.1
 polars==1.32.0
 fastexcel
+google_images_download
+uv
+diki_translate #do używania tłumaczeń z PL na SP
+beautifulsoup4
+requests

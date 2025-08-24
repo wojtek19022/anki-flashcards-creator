@@ -38,3 +38,7 @@ def check_excel_data(data: str) -> bool:
         return True
     else:
         return False
+
+@staticmethod
+def get_dict_link_for_lang(lang_dict, select_lang):
+    return lang_dict.get(select_lang)

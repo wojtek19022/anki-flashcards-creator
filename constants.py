@@ -7,7 +7,7 @@ LOGGER = logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 
 LANGUAGES_DECKS = ""
-MODEL_NAME = 'Basic Quizlet Extended'
+MODEL_NAME = 'Słownictwo z odwrotną kartą i multimediami'
 
 CARD_TMPLT = {
   "deckName": "",
@@ -19,14 +19,22 @@ CARD_TMPLT = {
   "tags": []
 }
 
+DIKI_MAIN_URL = "https://www.diki.pl"
+
+#link do słownika dicki z którego będziemy brać słówka z danego języka
+DICT_LANG_SEARCH_URLS = {
+  "🇪🇸 Hiszpański": "https://www.diki.pl/slownik-hiszpanskiego",
+  "🇬🇧 Angielski": "https://www.diki.pl/slownik-angielskiego" 
+  }
+
 #Do dostosowania jeżeli będzie potrzeba zmiana nazw pól do wypełnienia dla karty
 FIELDS = {
-  "front_text": "FrontText",
+  "front_text": "Słowo PL",
   "front_audio": "FrontAudio",
-  "back_text": "BackText",
+  "back_text": "Słowo EN",
   "back_audio": "BackAudio",
   "image": "Image",
-  "example": "Example"
+  "example": "Przykład EN"
 }
 
 FIELDS_EXCEL = {
@@ -35,4 +43,4 @@ FIELDS_EXCEL = {
   "example":"example"
 }
 
-CURR_LANG = '🇬🇧 Angielski'#'🇪🇸 Hiszpański'
+CURR_LANG = "English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'

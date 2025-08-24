@@ -1,20 +1,25 @@
 import os
 import logging
 
-from constants import LOGGER, MODEL_NAME, LANGUAGES_DECKS, FIELDS, FIELDS_EXCEL, CURR_LANG, CARD_TMPLT
+from constants import LOGGER, MODEL_NAME, LANGUAGES_DECKS, FIELDS, FIELDS_EXCEL, CURR_LANG, CARD_TMPLT, DICT_LANG_SEARCH_URLS, \
+                        DIKI_MAIN_URL
 
-from utils import invoke
 
-from modules import AnkiClient, ExcelWorker
+from utils import invoke, get_dict_link_for_lang
+
+from modules import AnkiClient, ExcelWorker, WebsiteScrapper
 
 class AnkiNoteGenerator:
     def __init__(self, data):
+        self.dict_langs_links = DICT_LANG_SEARCH_URLS
         self.current_lang = CURR_LANG
         self.card_template = CARD_TMPLT
         self.model_name = MODEL_NAME
+        self.diki_main_url = DIKI_MAIN_URL
         self.fields_anki = FIELDS
         self.fields_data = FIELDS_EXCEL
         self.anki_client = AnkiClient(self)
+        self.website_scrapper = WebsiteScrapper(self)
         self.cards_in_deck = [
             card for card in self.anki_client.get_cards_details(self.anki_client.find_all_notes()) \
             if card["deckName"] == self.current_lang and card["modelName"] == self.model_name
@@ -46,10 +51,12 @@ class AnkiNoteGenerator:
                     back_text = row[self.fields_data.get("back_text")],
                     example = row[self.fields_data.get("example")]
                 )
-                logging.info(f'Created ANKI card with ID: {result}')
+                logging.info(f'Created ANKI card with ID: {row}')
+
+                # print("TEST ",WebsiteScrapper.scrape_first_image_and_annotation(get_dict_link_for_lang(self.dict_langs_links, self.current_lang)+f"?q=rozmowa"))
             else:
-                logging.error("Word is already used for some card in in Anki")
-            break
+                logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
+            # break
 
 if __name__ == "__main__":
     while True:
