@@ -38,26 +38,54 @@ class AnkiClient:
         self.note_generator = NoteGenerator(self)
 
     @staticmethod
-    def get_fields_by_model_name(model_name):
-        result = invoke('modelFieldNames', modelName=model_name)
+    def get_fields_by_model_name(model_name: str) -> list:
+        """
+        Get fields of a card view
+        """
+        result = invoke(
+            'modelFieldNames', 
+            modelName=model_name
+        )
         return result
 
     @staticmethod
-    def get_models_names():
+    def get_models_names() -> list:
+        """
+        Get available models (cards views)
+        """
         result = invoke('modelNames')
         return result
 
     @staticmethod
     def get_decks_and_id() -> dict:
+        """
+        Get all decks with assigned ids
+        """
         result = invoke('deckNamesAndIds')
         return result
 
     @staticmethod
     def get_fields_for_deck():
-        result = invoke('getDeckConfig',deck=f"'{self.language}'")
+        """
+        Get selected deck config
+        """
+        result = invoke(
+            'getDeckConfig',
+            deck=f"'{self.language}'"
+        )
 
-    def add_note(self, fields, front_text, back_text, example, image, audio) -> int:
-
+    def add_note(
+        self, 
+        fields: list, 
+        front_text: str, 
+        back_text: str, 
+        example: str, 
+        image: str, 
+        audio: str
+    ) -> int:
+        """
+        Function adds an ANKI card from input card view
+        """
         result = invoke(
             'addNote', 
             note = self.note_generator.card_from_txt(
@@ -73,21 +101,30 @@ class AnkiClient:
 
         return result
 
-    def find_all_notes(self):
+    def find_all_notes(self) -> list:
+        """
+        Function returns all available cards in all decks
+        """
         result = invoke(
             'findCards',
             query = f"deck:*" 
         )
         return result
 
-    def get_cards_details(self, cards_list: list):
+    def get_cards_details(self, cards_list: list) -> dict:
+        """
+        Function returns ANKI card information
+        """
         result = invoke(
             'cardsInfo',
             cards = cards_list 
         )
         return result
 
-    def store_file_in_anki(self, filename, url):
+    def store_file_in_anki(self, filename: str, url: str) -> str:
+        """
+        Function stores any kind of a file from URL
+        """
         result = invoke(
             'storeMediaFile',
             filename= filename,
@@ -95,9 +132,13 @@ class AnkiClient:
         )
         return result
 
-    def retrieve_uploaded_file(self, filename):
+    def retrieve_uploaded_file(self, filename: str) -> str:
+        """
+        Function returns a file that was added into ANKI files repository
+        """
         result = invoke(
             'retrieveMediaFile',
             filename= filename
         )
         return result
+        
