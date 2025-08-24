@@ -92,17 +92,20 @@ class AnkiNoteGenerator:
             
             if not upl_audio_file and audio_file_name:
                 audio_upl = self.anki_client.store_file_in_anki(audio_file_name, audio_url)
-            if not image_file_name and image_file_name:
+            if not upl_image_file and image_file_name:
                 image_upl = self.anki_client.store_file_in_anki(image_file_name, image_url)
             
+            row.update({"image": f"<div><img src='{image_file_name}'></div>" if image_file_name else ""})
+            row.update({"audio": f"[sound:{audio_file_name}]" if audio_file_name else ""})
+
             try:
                 result = self.anki_client.add_note(
                     fields = self.fields,
                     front_text = row[self.fields_data.get("front_text")], 
                     back_text = row[self.fields_data.get("back_text")],
                     example = row[self.fields_data.get("example")],
-                    image = f"<div><img src='{image_file_name}'></div>" if image_file_name else "",
-                    audio = f"[sound:{audio_file_name}]" if audio_file_name else ""
+                    image = row.get("image"),
+                    audio = row.get("audio")
                 )
                 logging.info(f'Created ANKI card with ID: {result}\nData: {row}')
             except Exception as ex:
