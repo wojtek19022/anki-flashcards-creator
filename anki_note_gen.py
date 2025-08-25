@@ -67,7 +67,7 @@ class AnkiNoteGenerator:
         return await asyncio.gather(*tasks)
 
     async def note_creator(self, row):
-        if row[self.fields_data.get("front_text")] not in [note["fields"][self.fields_anki.get("front_text")]["value"] for note in self.cards_in_deck]:
+        if row[self.fields_data.get("front_text")].rstrip() not in [note["fields"][self.fields_anki.get("front_text")]["value"].rstrip() for note in self.cards_in_deck]:
             audio_upl = ""
             image_upl = ""
             audio_file_name = ""
