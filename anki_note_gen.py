@@ -9,7 +9,7 @@ from constants import LOGGER, MODEL_NAME, LANGUAGES_DECKS, FIELDS, FIELDS_EXCEL,
                         DIKI_MAIN_URL
 
 
-from utils import invoke, get_dict_link_for_lang
+from utils import invoke, clear_string, get_dict_link_for_lang
 from modules import AnkiClient, ExcelWorker, WebsiteScrapper
 
 class AnkiNoteGenerator:
@@ -67,7 +67,14 @@ class AnkiNoteGenerator:
         return await asyncio.gather(*tasks)
 
     async def note_creator(self, row):
-        if row[self.fields_data.get("front_text")].rstrip() not in [note["fields"][self.fields_anki.get("front_text")]["value"].rstrip() for note in self.cards_in_deck]:
+        front = clear_string(row[self.fields_data.get("front_text")])
+        back = clear_string(row[self.fields_data.get("back_text")])
+        example = clear_string(row[self.fields_data.get("example")])
+
+        if (front not in [note["fields"][self.fields_anki.get("front_text")]["value"].rstrip() for note in self.cards_in_deck if front == note["fields"][self.fields_anki.get("front_text")]["value"].rstrip()]
+            and back not in [note["fields"][self.fields_anki.get("back_text")]["value"].rstrip() for note in self.cards_in_deck if back == note["fields"][self.fields_anki.get("back_text")]["value"].rstrip()]):
+            
+            logging.info(f"Word '{back}' is not in any card in Anki TEST: {[note['fields'][self.fields_anki.get('back_text')]['value'].rstrip() for note in self.cards_in_deck if back == note['fields'][self.fields_anki.get('back_text')]['value'].rstrip()]}")
             audio_upl = ""
             image_upl = ""
             audio_file_name = ""
@@ -78,7 +85,7 @@ class AnkiNoteGenerator:
             upl_image_file = ""
 
             soup = self.website_scrapper.request_website(
-                get_dict_link_for_lang(self.dict_langs_links, self.current_lang)+f"?q={row[self.fields_data.get('back_text')]}"
+                get_dict_link_for_lang(self.dict_langs_links, self.current_lang)+f"?q={back}"
             )
             if soup:
                 image_url = self.website_scrapper.scrape_first_image(soup)
@@ -105,17 +112,18 @@ class AnkiNoteGenerator:
             try:
                 result = self.anki_client.add_note(
                     fields = self.fields,
-                    front_text = row[self.fields_data.get("front_text")], 
-                    back_text = row[self.fields_data.get("back_text")],
-                    example = row[self.fields_data.get("example")],
+                    front_text = front, 
+                    back_text = back,
+                    example = example,
                     image = row.get("image"),
                     audio = row.get("audio")
                 )
                 logging.info(f'Created ANKI card with ID: {result}\nData: {row}')
             except Exception:
-                logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
+                logging.error(f"Word '{back}' is already used for some card in Anki")
         else:
-            logging.error(f"Word '{row[self.fields_data.get('back_text')]}' is already used for some card in Anki")
+            print("COMP: ",back, " || ",[note['fields'][self.fields_anki.get('back_text')]['value'].rstrip() for note in self.cards_in_deck if back == note['fields'][self.fields_anki.get('back_text')]['value'].rstrip()])
+            logging.error(f"Word '{back}' is already used for some card in Anki")
     
     def run_coroutine(self, row):
         """Run the coroutine in an event loop"""

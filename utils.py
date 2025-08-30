@@ -25,6 +25,14 @@ def invoke(action, **params):
     return response['result']
 
 @staticmethod
+def clear_string(word: str) -> str:
+    try:
+        return word.rstrip()
+    except AttributeError:
+        return word if word else ""
+
+
+@staticmethod
 def set_up_fields_for_model(fields_list: list) -> dict:
     values = ['' for el in range(len(fields_list))]
     fields = dict(zip(fields_list, values))
