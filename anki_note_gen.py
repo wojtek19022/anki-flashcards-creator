@@ -74,7 +74,6 @@ class AnkiNoteGenerator:
         if (front not in [note["fields"][self.fields_anki.get("front_text")]["value"].rstrip() for note in self.cards_in_deck if front == note["fields"][self.fields_anki.get("front_text")]["value"].rstrip()]
             and back not in [note["fields"][self.fields_anki.get("back_text")]["value"].rstrip() for note in self.cards_in_deck if back == note["fields"][self.fields_anki.get("back_text")]["value"].rstrip()]):
             
-            logging.info(f"Word '{back}' is not in any card in Anki TEST: {[note['fields'][self.fields_anki.get('back_text')]['value'].rstrip() for note in self.cards_in_deck if back == note['fields'][self.fields_anki.get('back_text')]['value'].rstrip()]}")
             audio_upl = ""
             image_upl = ""
             audio_file_name = ""
@@ -122,7 +121,6 @@ class AnkiNoteGenerator:
             except Exception:
                 logging.error(f"Word '{back}' is already used for some card in Anki")
         else:
-            print("COMP: ",back, " || ",[note['fields'][self.fields_anki.get('back_text')]['value'].rstrip() for note in self.cards_in_deck if back == note['fields'][self.fields_anki.get('back_text')]['value'].rstrip()])
             logging.error(f"Word '{back}' is already used for some card in Anki")
     
     def run_coroutine(self, row):
