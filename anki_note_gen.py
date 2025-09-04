@@ -26,7 +26,7 @@ class AnkiNoteGenerator:
         self.website_scrapper = WebsiteScrapper(self)
         self.cards_in_deck = [
             card for card in self.anki_client.get_cards_details(self.anki_client.find_all_notes()) \
-            if card["deckName"] == self.current_lang and card["modelName"] == self.model_name
+            if card != {} and card["modelName"] == self.model_name
         ]
         self.fields = self.anki_client.get_fields_by_model_name(self.model_name)
         self.data = data
@@ -70,7 +70,7 @@ class AnkiNoteGenerator:
         front = clear_string(row[self.fields_data.get("front_text")])
         back = clear_string(row[self.fields_data.get("back_text")])
         example = clear_string(row[self.fields_data.get("example")])
-
+        
         if (front not in [note["fields"][self.fields_anki.get("front_text")]["value"].rstrip() for note in self.cards_in_deck if front == note["fields"][self.fields_anki.get("front_text")]["value"].rstrip()]
             and back not in [note["fields"][self.fields_anki.get("back_text")]["value"].rstrip() for note in self.cards_in_deck if back == note["fields"][self.fields_anki.get("back_text")]["value"].rstrip()]):
             
