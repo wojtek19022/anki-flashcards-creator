@@ -26,7 +26,8 @@ DICT_LANG_SEARCH_URLS = {
   "🇪🇸 Hiszpański": "https://www.diki.pl/slownik-hiszpanskiego",
   "🇬🇧 Angielski": "https://www.diki.pl/slownik-angielskiego",
   "English": "https://www.diki.pl/slownik-angielskiego",
-  "test": "https://www.diki.pl/slownik-angielskiego"
+  "test": "https://www.diki.pl/slownik-hiszpanskiego"
+  # "test": "https://www.diki.pl/slownik-angielskiego"
 }
 
 #Do dostosowania jeżeli będzie potrzeba zmiana nazw pól do wypełnienia dla karty
@@ -46,4 +47,4 @@ FIELDS_EXCEL = {
   "example":"example"
 }
 
-CURR_LANG = "test" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'
+CURR_LANG = "English" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'
