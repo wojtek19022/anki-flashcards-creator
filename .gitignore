@@ -181,5 +181,3 @@ cython_debug/
 .cursorindexingignore
 
 notes.py
-*.xlsx
-*.xlsx
