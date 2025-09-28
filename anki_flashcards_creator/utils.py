@@ -3,10 +3,15 @@ import os
 import urllib.request
 import pathlib
 
-from dotenv import load_dotenv
+from .constants import CONSOLE_USED
 
-load_dotenv()
-ANKI_API_URL=os.getenv('ANKI_API_URL')
+if CONSOLE_USED:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    ANKI_API_URL=os.getenv('ANKI_API_URL')
+else:
+    ANKI_API_URL = ""
 
 def request(action, **params):
     return {'action': action, 'params': params, 'version': 6}
@@ -30,7 +35,6 @@ def clear_string(word: str) -> str:
         return word.rstrip()
     except AttributeError:
         return word if word else ""
-
 
 @staticmethod
 def set_up_fields_for_model(fields_list: list) -> dict:
