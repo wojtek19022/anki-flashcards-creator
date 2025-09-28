@@ -1,2 +1,3 @@
 mypy
 aqt[qt6]
+monkeytype
