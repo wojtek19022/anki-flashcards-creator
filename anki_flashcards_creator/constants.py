@@ -1,10 +1,13 @@
 import logging
-from utils import invoke
 
+__name__ = "Anki notes creator"
 LOGGER = logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
+
+CONSOLE_USED = False
+DEFAULT_NUM_PROC = 3
 
 LANGUAGES_DECKS = ""
 MODEL_NAME = 'Słownictwo z odwrotną kartą i multimediami'
