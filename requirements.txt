@@ -1,0 +1,12 @@
+python-dotenv==1.1.1
+polars==1.32.0
+# fastexcel[polars,pyarrow]
+uv
+diki_translate #do używania tłumaczeń z PL na SP
+beautifulsoup4
+requests
+asyncio
+psutil
+MonkeyType==23.3.0
+mypy
+aqt[qt6]
