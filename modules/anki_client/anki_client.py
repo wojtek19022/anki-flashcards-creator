@@ -143,9 +143,6 @@ class AnkiClientDesktop:
     def __init__(self, parent):
         self.mw = parent.mw
         self.anki_backend = AnkiBackend(self)
-        with open(r"C:\Users\wojta\Desktop\test.txt","w+") as file:
-            file.write(str(self.mw) + "\n")
-            file.write(str(self.mw.col))
 
     def get_cards_details(self, cards_list: list) -> dict:
         """
