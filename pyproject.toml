@@ -1,0 +1,19 @@
+[project]
+name = "Anki-notes-creator"
+version = "0.2.0"
+description = "UV-based launcher for Anki."
+requires-python = ">=3.9"
+dependencies = [
+  "anki-release",
+  "python-dotenv==1.1.1",
+  "polars",
+  "fastexcel[polars,pyarrow]",
+  "uv",
+  "diki_translate",
+  "beautifulsoup4", 
+  "requests",
+  "asyncio",
+  "psutil",
+  "MonkeyType==23.3.0",
+  "mypy"
+]
