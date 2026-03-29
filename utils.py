@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 
 
-from .constants import CONSOLE_USED
+from .constants import CONSOLE_USED, MIN_LOGS_LEVEL
 
 if CONSOLE_USED:
     from dotenv import load_dotenv
@@ -103,6 +103,6 @@ class Logger:
         )
         self.handler.setFormatter(formatter)
 
-    def setLogsLevel(self, log_level: logging.log = logging.INFO):
+    def setLogsLevel(self, log_level: logging.log = MIN_LOGS_LEVEL):
         self.logger.setLevel(log_level)
 
