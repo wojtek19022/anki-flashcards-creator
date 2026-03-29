@@ -1,7 +1,7 @@
 # import importlib
 # anki_flashcards_creator = importlib.import_module("anki-flashcards-creator")
 
-import aqt
+from aqt import mw
 from aqt.qt import *
 
 from .constants import __name__
@@ -13,9 +13,9 @@ Packages().install(os.path.join(os.path.dirname(Path(__file__)),"requirements.tx
 
 from .dialog.anki_note_gen_dialog import AnkiNoteGenDialog
 
-dialog = AnkiNoteGenDialog(mw=aqt.mw)
-action = QAction(__name__, aqt.mw)
+dialog = AnkiNoteGenDialog(mw=mw)
+action = QAction(__name__, mw)
 # set it to call testFunction when it's clicked
 qconnect(action.triggered, dialog.run)
 # and add it to the tools menu
-aqt.mw.form.menuTools.addAction(action)
+mw.form.menuTools.addAction(action)
