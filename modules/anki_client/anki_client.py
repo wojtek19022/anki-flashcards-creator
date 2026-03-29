@@ -2,7 +2,7 @@ from ...utils import invoke, set_up_fields_for_model
 
 from ...constants import CONSOLE_USED, CURR_LANG, CARD_TMPLT, \
                         MODEL_NAME, \
-                        FIELDS_EXCEL, \
+                        FIELDS, FIELDS_EXCEL, \
                         MODEL_NAME
 
 class NoteGenerator:
@@ -21,11 +21,11 @@ class NoteGenerator:
         Function prepares ANKI Note to be send to a database - assigns attributes to correct columns
         """
         CARD_TMPLT['fields'] = set_up_fields_for_model(fields)
-        CARD_TMPLT['fields'][FIELDS_EXCEL.get("front_text")] = input_str
-        CARD_TMPLT['fields'][FIELDS_EXCEL.get("back_text")] = output_str
-        CARD_TMPLT['fields'][FIELDS_EXCEL.get("example")] = example
-        CARD_TMPLT['fields'][FIELDS_EXCEL.get("image")] = image
-        CARD_TMPLT['fields'][FIELDS_EXCEL.get("audio")] = audio
+        CARD_TMPLT['fields'][FIELDS.get("front_text")] = input_str
+        CARD_TMPLT['fields'][FIELDS.get("back_text")] = output_str
+        CARD_TMPLT['fields'][FIELDS.get("example")] = example
+        CARD_TMPLT['fields'][FIELDS.get("image")] = image
+        CARD_TMPLT['fields'][FIELDS.get("audio")] = audio
         CARD_TMPLT['deckName'] = deck    
         
         return CARD_TMPLT
@@ -239,25 +239,29 @@ class AnkiClientDesktop:
             audio = audio
         )
 
+        self.logger.info(f"NOTE PARAMS: {note_params}")
+
         note = self.create_note(
             CURR_LANG,
             params = note_params
         )
-        self.logger.info(f"NEW NOTE : {note}")
-
-        return self.mw.col.addNote(
+        
+        self.mw.col.addNote(
             note
         )
+
+        return note.id
     
     def create_note(self, deck, params):
         from anki import notes
         models = self.get_models_and_id()
         note = notes.Note(self.mw.col, self.mw.col.models.get(models.get(MODEL_NAME)))
-        note.model()["did"] = self.get_decks_and_id()[deck]
+        note.note_type()['did'] = self.get_decks_and_id()[deck]
         # note.tags = FIELDS_EXCEL.keys()
         
-        for name, value in params.items():
-            self.logger.info(f"NEW DATA: {name}:{value}")
+        for name, value in params["fields"].items():
+            self.logger.debug(f"Note data {note.items()}")
+            self.logger.debug(f"Adding data to a note: {note.id} and attribute: {name}")
             if name in note:
                 note[name] = value
 
