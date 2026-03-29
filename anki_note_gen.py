@@ -25,10 +25,11 @@ class AnkiNoteGenerator:
         self.mw = self.parent.mw
         self.logging_client = Logger(name = plugin_name)
         self.logger = self.logging_client.logger
-        self.logger.info(f"NOTE GENERATOR: {self.mw}")
+        self.logger.debug(f"NOTE GENERATOR: {self.mw}")
         self.encoder = Encoder()
         self.anki_client_console = AnkiClientConsole(self)
-        self.anki_client_desktop = AnkiClientDesktop(self)
+        if not CONSOLE_USED:
+            self.anki_client_desktop = AnkiClientDesktop(self)
         self.excel_worker = ExcelWorker(self)
         self.website_scrapper = WebsiteScrapper() 
         self.data = ""
@@ -132,20 +133,29 @@ class AnkiNoteGenerator:
 
             if audio_file_name:
                 upl_audio_file = self.anki_client_console.retrieve_uploaded_file(audio_file_name) if CONSOLE_USED \
-                                    else self.anki_client_desktop.retrieve_uploaded_file(image_file_name)
+                                    else self.anki_client_desktop.retrieve_uploaded_file(audio_file_name)
             if image_file_name:
                 upl_image_file = self.anki_client_console.retrieve_uploaded_file(image_file_name) if CONSOLE_USED \
                                     else self.anki_client_desktop.retrieve_uploaded_file(image_file_name)
+
+            self.logger.debug(f"Image file: {upl_image_file}, audio file: {upl_audio_file}")
             
-            if not upl_audio_file and audio_file_name:
+            if audio_url and upl_audio_file is False:
                 audio_upl = self.anki_client_console.store_file_in_anki(audio_file_name, audio_url) if CONSOLE_USED \
                                     else self.anki_client_desktop.store_file_in_anki(audio_file_name, audio_url)
-            if not upl_image_file and image_file_name:
+                self.logger.info(f"Uploaded new audio: {audio_upl}")
+            elif upl_audio_file:
+                audio_upl = audio_file_name
+
+            if image_url and upl_image_file is False:
                 image_upl = self.anki_client_console.store_file_in_anki(image_file_name, image_url) if CONSOLE_USED \
-                                    else self.anki_client_desktop.store_file_in_anki(audio_file_name, audio_url)
-            
-            row.update({"image": f"<div><img src='{image_file_name}'></div>" if image_file_name else ""})
-            row.update({"audio": f"[sound:{audio_file_name}]" if audio_file_name else ""})
+                                    else self.anki_client_desktop.store_file_in_anki(image_file_name, image_url)
+                self.logger.info(f"Uploaded new image: {image_upl}")
+            elif upl_image_file:
+                image_upl = image_file_name
+
+            row.update({"image": f"<div><img src='{image_upl}'></div>" if image_upl else ""})
+            row.update({"audio": f"[sound:{audio_upl}]" if audio_upl else ""})
 
             if CONSOLE_USED:
                 try:

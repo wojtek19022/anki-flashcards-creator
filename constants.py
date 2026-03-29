@@ -6,7 +6,8 @@ __author__ = "Wojciech Sołyga"
 
 CONSOLE_USED = False
 DEFAULT_NUM_PROC = 3
-MIN_LOGS_LEVEL = logging.DEBUG
+DEFAULT_TIMEOUT = 10
+MIN_LOGS_LEVEL = logging.INFO
 
 SYSTEM_ENCODING = "cp1250"
 CURR_LANG = "🇬🇧 Angielski" #"English" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'

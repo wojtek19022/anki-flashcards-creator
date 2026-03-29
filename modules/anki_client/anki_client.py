@@ -1,12 +1,15 @@
+import os
 from ...utils import invoke, set_up_fields_for_model
 
 from ...constants import CONSOLE_USED, CURR_LANG, CARD_TMPLT, \
-                        MODEL_NAME, \
+                        DEFAULT_TIMEOUT, \
                         FIELDS, FIELDS_EXCEL, \
                         MODEL_NAME
 
-class NoteGenerator:
+if not CONSOLE_USED:
+    from anki import notes, sync
 
+class NoteGenerator:
     def card_from_txt(
         self,
         deck: str,
@@ -157,6 +160,17 @@ class AnkiClientDesktop:
         self.encoder = self.parent.encoder
         self.note_generator = NoteGenerator()
 
+    @staticmethod
+    def download(url):
+        client = sync.AnkiRequestsClient()
+        client.timeout = DEFAULT_TIMEOUT
+
+        resp = client.get(url)
+        if resp.status_code != 200:
+            raise Exception('{} download failed with return code {}'.format(url, resp.status_code))
+
+        return client.streamContent(resp)
+
     def get_all_cards_in_deck(self):
         return [
             card for card in self.get_cards_details(self.find_all_notes())# \
@@ -208,13 +222,20 @@ class AnkiClientDesktop:
             in self.get_all_models()
         }
 
-    def retrieve_uploaded_file(self, image_filename: str):
-        return self.mw.col.media.have(image_filename)
+    def retrieve_uploaded_file(self, filename: str):
+        file = os.path.join(self.mw.col.media.dir(), filename)
+        return True if (os.path.exists(file) and os.path.isfile(file)) \
+                    else False
 
-    def store_file_in_anki(self, audio_file_name: str, audio_url: str):
-        return self.mw.col.media.writeData(
-            audio_file_name,
-            self.encoder.encode_string(audio_url)
+    def store_file_in_anki(self, file_name: str, file_url: str):
+        self.logger.debug(f"Downloaded media filename: {file_name}; file url: {file_url}")
+        file = self.download(file_url)
+        # return self.mw.col.media.add_file(
+        #     file
+        # )
+        return self.mw.col.media.write_data(
+            file_name,
+            file#self.encoder.encode_string(file_url)
         )
     
     def add_note(
@@ -238,8 +259,7 @@ class AnkiClientDesktop:
             image = image,
             audio = audio
         )
-
-        self.logger.info(f"NOTE PARAMS: {note_params}")
+        # self.logger.debug(note_params.items())
 
         note = self.create_note(
             CURR_LANG,
@@ -253,15 +273,11 @@ class AnkiClientDesktop:
         return note.id
     
     def create_note(self, deck, params):
-        from anki import notes
         models = self.get_models_and_id()
         note = notes.Note(self.mw.col, self.mw.col.models.get(models.get(MODEL_NAME)))
         note.note_type()['did'] = self.get_decks_and_id()[deck]
-        # note.tags = FIELDS_EXCEL.keys()
         
         for name, value in params["fields"].items():
-            self.logger.debug(f"Note data {note.items()}")
-            self.logger.debug(f"Adding data to a note: {note.id} and attribute: {name}")
             if name in note:
                 note[name] = value
 
