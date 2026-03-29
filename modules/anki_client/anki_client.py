@@ -1,6 +1,7 @@
 from ...utils import invoke, set_up_fields_for_model
 
-from ...constants import CURR_LANG, CARD_TMPLT
+from ...constants import CURR_LANG, CARD_TMPLT, \
+                        FIELDS_EXCEL
 
 class NoteGenerator:
 
@@ -13,16 +14,16 @@ class NoteGenerator:
         image: str,
         audio: str,
         example: str
-    ) -> int:   
+    ) -> dict:   
         """
         Function prepares ANKI Note to be send to a database - assigns attributes to correct columns
         """
         CARD_TMPLT['fields'] = set_up_fields_for_model(fields)
-        CARD_TMPLT['fields'][self.fields.get("front_text")] = input_str
-        CARD_TMPLT['fields'][self.fields.get("back_text")] = output_str
-        CARD_TMPLT['fields'][self.fields.get("example")] = example
-        CARD_TMPLT['fields'][self.fields.get("image")] = image
-        CARD_TMPLT['fields'][self.fields.get("audio")] = audio
+        CARD_TMPLT['fields'][FIELDS_EXCEL.get("front_text")] = input_str
+        CARD_TMPLT['fields'][FIELDS_EXCEL.get("back_text")] = output_str
+        CARD_TMPLT['fields'][FIELDS_EXCEL.get("example")] = example
+        CARD_TMPLT['fields'][FIELDS_EXCEL.get("image")] = image
+        CARD_TMPLT['fields'][FIELDS_EXCEL.get("audio")] = audio
         CARD_TMPLT['deckName'] = deck    
     
         return CARD_TMPLT
@@ -141,29 +142,50 @@ class AnkiClientConsole:
 
 class AnkiClientDesktop:
     def __init__(self, parent):
-        self.mw = parent.mw
+        self.parent = parent
+        self.mw = self.parent.mw
+        self.logger = self.parent.logger
         self.anki_backend = AnkiBackend(self)
 
-    def get_cards_details(self, cards_list: list) -> dict:
+    def get_all_models(self) -> list:
+        return self.mw.col.models.all()
+
+    def get_models_names(self) -> list:
+        """
+        Get available models (cards views)
+        """
+        result = [model["name"] for model in self.mw.col.models.all()]
+        return result
+
+    def get_cards_details(self, cards_list: list) -> list:
         """
         Function returns ANKI card information
         """
         result = self.anki_backend.cardsInfo(cards_list)
         return result
-
+    
     def find_all_notes(self) -> list:
         """
         Function returns all available cards in all decks
         """
+        self.parent.logger.info(f"find_all_notes: {self.mw}")
         result = self.mw.col.find_cards('deck:*')
         return result
+
+    def get_fields_by_model_name(self, model_name) -> list:
+        models = self.get_all_models()
+        fields = [model.get("flds") for model in models if model["name"]==model_name]
+        fields_names = list(map(lambda d: d["name"], fields[0]))
+        return fields_names
+
 
 
 class AnkiBackend:
     def __init__(self, parent):
-        self.mw = parent.mw
+        self.parent = parent
+        self.mw = self.parent.mw
 
-    def cardsInfo(self, cards):
+    def cardsInfo(self, cards) -> list:
         result = []
         for cid in cards:
             try:

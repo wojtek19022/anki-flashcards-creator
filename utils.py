@@ -15,7 +15,8 @@ from .constants import CONSOLE_USED
 if CONSOLE_USED:
     from dotenv import load_dotenv
 
-    load_dotenv()
+    env_path = os.path.join(Path(__file__).parent,'.env')
+    load_dotenv(dotenv_path=env_path)
     ANKI_API_URL=os.getenv('ANKI_API_URL')
 else:
     ANKI_API_URL = ""
@@ -68,10 +69,6 @@ def get_dict_link_for_lang(lang_dict, select_lang):
 
 
 class Packages:
-
-    def __init__(self) -> None:
-        self.logging_client = Logger("TEST")
-        self.logger = self.logging_client.logger
 
     def install(self, deps):
         import subprocess

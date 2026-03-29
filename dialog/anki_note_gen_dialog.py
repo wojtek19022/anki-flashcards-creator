@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..utils import Logger
 from ..constants import __name__ as plugin_name, \
-                        CARD_TMPLT
+                        CARD_TMPLT, CONSOLE_USED
 
 from .anki_note_creator_ui import Ui_Dialog
 from ..anki_note_gen import AnkiNoteGenerator
@@ -27,7 +27,7 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
         self.logging_client = Logger(name = plugin_name)
         self.logger = self.logging_client.logger
         self.settings_dlg = AnkiNoteGenSettingsDialog(self)
-        self.note_generator = AnkiNoteGenerator(self.mw)
+        self.note_generator = AnkiNoteGenerator(self)
         self.connect_signals()
 
     def connect_signals(self):
@@ -48,7 +48,7 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
             self.plugin_dlg.okPushButton.setEnabled(False)
 
     def prepare_inputs(self):
-        if not self.note_generator.console_used:
+        if not CONSOLE_USED:
             self.input_path = self.plugin_dlg.searchLineEdit.text()
             if self.input_path == 0 or not self.input_path:
                 QMessageBox.critical(
