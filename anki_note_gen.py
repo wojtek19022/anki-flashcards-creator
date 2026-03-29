@@ -3,16 +3,16 @@ import logging
 import asyncio
 
 from concurrent.futures import ThreadPoolExecutor
-from aqt import mw
 from aqt.qt import QMessageBox
 
 from .constants import __name__ as plugin_name, \
+                        SYSTEM_ENCODING, \
                         CONSOLE_USED, CURR_LANG, DEFAULT_NUM_PROC, \
                         MODEL_NAME, LANGUAGES_DECKS, FIELDS_EXCEL, FIELDS, DICT_LANG_SEARCH_URLS, \
                         DIKI_MAIN_URL
 
 
-from .utils import invoke, clear_string, get_dict_link_for_lang, Logger
+from .utils import invoke, clear_string, get_dict_link_for_lang, Logger, Encoder
 from .modules import AnkiClientConsole, AnkiClientDesktop, ExcelWorker, WebsiteScrapper
 
 # import anki plugin GUI components
@@ -26,23 +26,11 @@ class AnkiNoteGenerator:
         self.logging_client = Logger(name = plugin_name)
         self.logger = self.logging_client.logger
         self.logger.info(f"NOTE GENERATOR: {self.mw}")
+        self.encoder = Encoder()
         self.anki_client_console = AnkiClientConsole(self)
         self.anki_client_desktop = AnkiClientDesktop(self)
         self.excel_worker = ExcelWorker(self)
-        self.website_scrapper = WebsiteScrapper()
-        if CONSOLE_USED:
-            self.cards_in_deck = [
-                card for card in self.anki_client_console.get_cards_details(self.anki_client_console.find_all_notes()) \
-                if card != {} and card["modelName"] == MODEL_NAME
-            ]
-        else:
-            anki_notes = self.anki_client_desktop.find_all_notes()
-            self.cards_in_deck = [
-                card for card in self.anki_client_desktop.get_cards_details(anki_notes)# \
-                # if card != {} and card["modelName"] == MODEL_NAME
-            ]
-        self.fields = self.anki_client_console.get_fields_by_model_name(MODEL_NAME) if CONSOLE_USED \
-                        else self.anki_client_desktop.get_fields_by_model_name(MODEL_NAME) 
+        self.website_scrapper = WebsiteScrapper() 
         self.data = ""
         self.data_cols = []
         self.max_threads = max(1, int(psutil.cpu_count() * 0.8)) if CONSOLE_USED else DEFAULT_NUM_PROC# Calculate the number of threads to use (80% of available CPU cores)
@@ -50,18 +38,49 @@ class AnkiNoteGenerator:
 
     async def main(self, input_path):
         self.data = input_path
+        self.fields = self.anki_client_console.get_fields_by_model_name(MODEL_NAME) if CONSOLE_USED \
+                        else self.anki_client_desktop.get_fields_by_model_name(MODEL_NAME)
+        self.cards_in_deck = self.anki_client_console.get_all_cards_in_deck() if CONSOLE_USED \
+                                else self.anki_client_desktop.get_all_cards_in_deck()
         self.logger.info("Creating of cards was started")
-        if not MODEL_NAME in self.anki_client_console.get_models_names():
-            self.logger.error(f'Model with name: {MODEL_NAME} is not on ANKI. Try with different name')
-            return 
-        
-        if CURR_LANG not in self.anki_client_console.get_decks_and_id().keys():
-            self.logger.error(f'Cannot find deck with name: {CURR_LANG} try again with different name')
-            return 
 
+        if CONSOLE_USED:
+            if not MODEL_NAME in self.anki_client_console.get_models_names():
+                self.logger.error(f'Model with name: {MODEL_NAME} is not on ANKI. Try with different name')
+                return 
+            
+            if CURR_LANG not in self.anki_client_console.get_decks_and_id().keys():
+                self.logger.error(f'Cannot find deck with name: {CURR_LANG} try again with different name')
+                return 
+        else:
+            if not MODEL_NAME in self.anki_client_desktop.get_models_names():
+                QMessageBox.critical(
+                    self.mw,
+                    'Anki notes creator',
+                    f"Model with name: {MODEL_NAME} is not on ANKI. <br>Try with different name"
+                )
+                self.logger.critical(f'Model with name: {MODEL_NAME} is not on ANKI. Try with different name'.encode(SYSTEM_ENCODING, errors="replace"))
+                return 
+
+            if CURR_LANG not in self.anki_client_desktop.get_decks_and_id().keys():
+                QMessageBox.critical(
+                    self.mw,
+                    'Anki notes creator',
+                    f"Cannot find deck with name: {CURR_LANG}. <br>Try again with different name"
+                )
+                self.logger.critical(f'Cannot find deck with name: {CURR_LANG}. Try again with different name'.encode(SYSTEM_ENCODING, errors="replace"))
+                return 
+
+        self.logger.info("Initial parameters are correct, starder processing excel")
         self.data = self.excel_worker.excel_to_df(self.data, FIELDS_EXCEL.get('back_text'))
 
         if not self.data:
+            QMessageBox.warning(
+                self.mw,
+                'Anki notes creator',
+                f"No data found in excel file. In order to create anki notes, input some data into excel"
+            )
+            self.logger.warning("No data found in excel file. In order to create anki notes, input some data into excel")
             return
         
         num_cards = range(1, len(self.data))  # Define the range based on the GeoDataFrame
@@ -112,30 +131,54 @@ class AnkiNoteGenerator:
                 image_file_name = os.path.basename(image_url)
 
             if audio_file_name:
-                upl_audio_file = self.anki_client_console.retrieve_uploaded_file(audio_file_name)
+                upl_audio_file = self.anki_client_console.retrieve_uploaded_file(audio_file_name) if CONSOLE_USED \
+                                    else self.anki_client_desktop.retrieve_uploaded_file(image_file_name)
             if image_file_name:
-                upl_image_file = self.anki_client_console.retrieve_uploaded_file(image_file_name)
+                upl_image_file = self.anki_client_console.retrieve_uploaded_file(image_file_name) if CONSOLE_USED \
+                                    else self.anki_client_desktop.retrieve_uploaded_file(image_file_name)
             
             if not upl_audio_file and audio_file_name:
-                audio_upl = self.anki_client_console.store_file_in_anki(audio_file_name, audio_url)
+                audio_upl = self.anki_client_console.store_file_in_anki(audio_file_name, audio_url) if CONSOLE_USED \
+                                    else self.anki_client_desktop.store_file_in_anki(audio_file_name, audio_url)
             if not upl_image_file and image_file_name:
-                image_upl = self.anki_client_console.store_file_in_anki(image_file_name, image_url)
+                image_upl = self.anki_client_console.store_file_in_anki(image_file_name, image_url) if CONSOLE_USED \
+                                    else self.anki_client_desktop.store_file_in_anki(audio_file_name, audio_url)
             
             row.update({"image": f"<div><img src='{image_file_name}'></div>" if image_file_name else ""})
             row.update({"audio": f"[sound:{audio_file_name}]" if audio_file_name else ""})
 
-            try:
-                result = self.anki_client_console.add_note(
-                    fields = self.fields,
-                    front_text = front, 
-                    back_text = back,
-                    example = example,
-                    image = row.get("image"),
-                    audio = row.get("audio")
-                )
-                self.logger.info(f'Created ANKI card with ID: {result}\nData: {row}')
-            except Exception:
-                self.logger.error(f"Word '{back}' is already used for some card in Anki")
+            if CONSOLE_USED:
+                try:
+                    result = self.anki_client_console.add_note(
+                        fields = self.fields,
+                        front_text = front, 
+                        back_text = back,
+                        example = example,
+                        image = row.get("image"),
+                        audio = row.get("audio")
+                    )
+                    self.logger.info(f'Created ANKI card with ID: {result}\nData: {row}')
+                
+                except FileExistsError:
+                    self.logger.error(f"Word '{back}' is already used for some card in Anki")
+                except Exception as ex:
+                    self.logger.error(f"Unknown error occured: {ex}")
+            else:
+                try:
+                    result = self.anki_client_desktop.add_note(
+                        fields = self.fields,
+                        front_text = front, 
+                        back_text = back,
+                        example = example,
+                        image = row.get("image"),
+                        audio = row.get("audio")
+                    )
+                    self.logger.info(f'Created ANKI card with ID: {result}\nData: {row}')
+                
+                except FileExistsError:
+                    self.logger.error(f"Word '{back}' is already used for some card in Anki")
+                except Exception as ex:
+                    self.logger.error(f"Unknown error occured: {ex}")
         else:
             self.logger.error(f"Word '{back}' is already used for some card in Anki")
     

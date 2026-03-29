@@ -1,7 +1,9 @@
 from ...utils import invoke, set_up_fields_for_model
 
-from ...constants import CURR_LANG, CARD_TMPLT, \
-                        FIELDS_EXCEL
+from ...constants import CONSOLE_USED, CURR_LANG, CARD_TMPLT, \
+                        MODEL_NAME, \
+                        FIELDS_EXCEL, \
+                        MODEL_NAME
 
 class NoteGenerator:
 
@@ -14,7 +16,7 @@ class NoteGenerator:
         image: str,
         audio: str,
         example: str
-    ) -> dict:   
+    ) : #dict albo ...   
         """
         Function prepares ANKI Note to be send to a database - assigns attributes to correct columns
         """
@@ -25,7 +27,7 @@ class NoteGenerator:
         CARD_TMPLT['fields'][FIELDS_EXCEL.get("image")] = image
         CARD_TMPLT['fields'][FIELDS_EXCEL.get("audio")] = audio
         CARD_TMPLT['deckName'] = deck    
-    
+        
         return CARD_TMPLT
 
 
@@ -33,6 +35,12 @@ class AnkiClientConsole:
     def __init__(self, parent):
         self.parent = parent
         self.note_generator = NoteGenerator()
+
+    def get_all_cards_in_deck(self):
+        return [
+            card for card in self.get_cards_details(self.find_all_notes()) \
+            if card != {} and card["modelName"] == MODEL_NAME
+        ]
 
     @staticmethod
     def get_fields_by_model_name(model_name: str) -> list:
@@ -146,15 +154,26 @@ class AnkiClientDesktop:
         self.mw = self.parent.mw
         self.logger = self.parent.logger
         self.anki_backend = AnkiBackend(self)
+        self.encoder = self.parent.encoder
+        self.note_generator = NoteGenerator()
+
+    def get_all_cards_in_deck(self):
+        return [
+            card for card in self.get_cards_details(self.find_all_notes())# \
+            if card != {} and card["modelName"] == MODEL_NAME
+        ]
 
     def get_all_models(self) -> list:
         return self.mw.col.models.all()
+
+    def get_all_decks(self) -> list:
+        return self.mw.col.decks.all()
 
     def get_models_names(self) -> list:
         """
         Get available models (cards views)
         """
-        result = [model["name"] for model in self.mw.col.models.all()]
+        result = [model["name"] for model in self.get_all_models()]
         return result
 
     def get_cards_details(self, cards_list: list) -> list:
@@ -168,7 +187,6 @@ class AnkiClientDesktop:
         """
         Function returns all available cards in all decks
         """
-        self.parent.logger.info(f"find_all_notes: {self.mw}")
         result = self.mw.col.find_cards('deck:*')
         return result
 
@@ -178,6 +196,72 @@ class AnkiClientDesktop:
         fields_names = list(map(lambda d: d["name"], fields[0]))
         return fields_names
 
+    def get_decks_and_id(self):
+        return {
+            deck["name"]:deck["id"] for deck \
+            in self.get_all_decks()
+        }
+
+    def get_models_and_id(self):
+        return {
+            model["name"]:model["id"] for model \
+            in self.get_all_models()
+        }
+
+    def retrieve_uploaded_file(self, image_filename: str):
+        return self.mw.col.media.have(image_filename)
+
+    def store_file_in_anki(self, audio_file_name: str, audio_url: str):
+        return self.mw.col.media.writeData(
+            audio_file_name,
+            self.encoder.encode_string(audio_url)
+        )
+    
+    def add_note(
+        self, 
+        fields: list, 
+        front_text: str, 
+        back_text: str, 
+        example: str, 
+        image: str, 
+        audio: str
+    ):
+        """
+        Function adds an ANKI card from input card view
+        """
+        note_params = self.note_generator.card_from_txt(
+            CURR_LANG,
+            fields = fields,
+            input_str = front_text,
+            output_str = back_text,
+            example = example,
+            image = image,
+            audio = audio
+        )
+
+        note = self.create_note(
+            CURR_LANG,
+            params = note_params
+        )
+        self.logger.info(f"NEW NOTE : {note}")
+
+        return self.mw.col.addNote(
+            note
+        )
+    
+    def create_note(self, deck, params):
+        from anki import notes
+        models = self.get_models_and_id()
+        note = notes.Note(self.mw.col, self.mw.col.models.get(models.get(MODEL_NAME)))
+        note.model()["did"] = self.get_decks_and_id()[deck]
+        # note.tags = FIELDS_EXCEL.keys()
+        
+        for name, value in params.items():
+            self.logger.info(f"NEW DATA: {name}:{value}")
+            if name in note:
+                note[name] = value
+
+        return note
 
 
 class AnkiBackend:
@@ -225,7 +309,7 @@ class AnkiBackend:
                     'nextReviews': list(nextReviews),
                     'flags': card.flags,
                 })
-            except NotFoundError:
+            except FileNotFoundError:
                 # Anki will give a NotFoundError if the card ID does not exist.
                 # Best behavior is probably to add an 'empty card' to the
                 # returned result, so that the items of the input and return
@@ -247,7 +331,7 @@ class AnkiBackend:
         return card.answer()
     
     def deckNameFromId(self, deckId):
-        deck = self.collection().decks.get(deckId)
+        deck = self.mw.col.decks.get(deckId)
         if deck is None:
             raise Exception('deck was not found: {}'.format(deckId))
 
