@@ -1,9 +1,12 @@
+import logging
+
 __name__ = "Anki notes creator"
 __version = "0.2.0"
 __author__ = "Wojciech Sołyga"
 
 CONSOLE_USED = False
 DEFAULT_NUM_PROC = 3
+MIN_LOGS_LEVEL = logging.DEBUG
 
 SYSTEM_ENCODING = "cp1250"
 CURR_LANG = "🇬🇧 Angielski" #"English" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'
@@ -35,9 +38,9 @@ DICT_LANG_SEARCH_URLS = {
 #Do dostosowania jeżeli będzie potrzeba zmiana nazw pól do wypełnienia dla karty
 FIELDS = {
   "front_text": "Słowo PL",
-  "front_audio": "FrontAudio",
+  # "front_audio": "FrontAudio",
   "back_text": "Słowo EN",
-  "back_audio": "BackAudio",
+  # "back_audio": "BackAudio",
   "image": "Obrazek",
   "audio": "Audio",
   "example": "Przykład EN"
