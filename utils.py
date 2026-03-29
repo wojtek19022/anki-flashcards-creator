@@ -2,6 +2,7 @@ import json
 import os
 import urllib.request
 import pathlib
+import base64
 # std
 import importlib
 import sys
@@ -66,6 +67,12 @@ def check_excel_data(data: str) -> bool:
 @staticmethod
 def get_dict_link_for_lang(lang_dict, select_lang):
     return lang_dict.get(select_lang)
+
+
+class Encoder:
+    @staticmethod
+    def encode_string(filepath: str):
+        return base64.b64encode(filepath.encode("utf-8"))
 
 
 class Packages:

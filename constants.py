@@ -5,7 +5,8 @@ __author__ = "Wojciech Sołyga"
 CONSOLE_USED = False
 DEFAULT_NUM_PROC = 3
 
-CURR_LANG = "English" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'
+SYSTEM_ENCODING = "cp1250"
+CURR_LANG = "🇬🇧 Angielski" #"English" #"English" #'🇬🇧 Angielski'#'🇪🇸 Hiszpański'
 LANGUAGES_DECKS = ""
 MODEL_NAME = 'Słownictwo z odwrotną kartą i multimediami'
 
@@ -23,6 +24,7 @@ DIKI_MAIN_URL = "https://www.diki.pl/"
 
 #link do słownika dicki z którego będziemy brać słówka z danego języka
 DICT_LANG_SEARCH_URLS = {
+  "🇪🇸  Español": "https://www.diki.pl/slownik-hiszpanskiego",
   "🇪🇸 Hiszpański": "https://www.diki.pl/slownik-hiszpanskiego",
   "🇬🇧 Angielski": "https://www.diki.pl/slownik-angielskiego",
   "English": "https://www.diki.pl/slownik-angielskiego",
