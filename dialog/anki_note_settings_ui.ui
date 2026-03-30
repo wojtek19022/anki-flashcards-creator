@@ -47,10 +47,10 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="frontTextCbx"/>
+           <widget class="QComboBox" name="nativeLangTextCbx"/>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="backTextCbx"/>
+           <widget class="QComboBox" name="foreignLangTextCbx"/>
           </item>
           <item row="2" column="1">
            <widget class="QComboBox" name="examplesCbx"/>
@@ -83,7 +83,7 @@
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="1">
-           <widget class="QLineEdit" name="deckNameLineEdit"/>
+           <widget class="QComboBox" name="deckNameTextCbx"/>
           </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_5">
@@ -100,7 +100,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="modelNameLineEdit"/>
+           <widget class="QComboBox" name="modelNameTextCbx"/>
           </item>
          </layout>
         </item>
