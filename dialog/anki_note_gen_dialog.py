@@ -107,11 +107,15 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         if (
             self.settings_dlg.nativeLangTextCbx.currentText() or \
             self.settings_dlg.foreignLangTextCbx.currentText() or \
-            self.settings_dlg.examplesCbx.currentText()
+            self.settings_dlg.examplesCbx.currentText() or \
+            self.settings_dlg.deckNameTextCbx.currentText() or \
+            self.settings_dlg.modelNameTextCbx.currentText()
         ):
             self.settings_dlg.nativeLangTextCbx.clear()
             self.settings_dlg.foreignLangTextCbx.clear()
             self.settings_dlg.examplesCbx.clear()
+            self.settings_dlg.deckNameTextCbx.clear()
+            self.settings_dlg.modelNameTextCbx.clear()
 
         self.anki_client_desktop = AnkiClientDesktop(self)
 
