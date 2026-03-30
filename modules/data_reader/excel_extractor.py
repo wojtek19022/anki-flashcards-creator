@@ -26,7 +26,7 @@ class ExcelWorker:
         df = pl.read_excel(data)
         return df.to_dicts()
 
-    def read_headers(self, df):
+    def read_headers(self, df) -> list:
         """
         Funkcja wydobywa nazwy kolumn z pierwszego arkusza excela
         """
