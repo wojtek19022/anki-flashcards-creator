@@ -6,13 +6,13 @@ from aqt.qt import *
 from PyQt6 import QtWidgets, uic
 from pathlib import Path
 
-from ..utils import Logger
+from ..utils import Logger, Encoder
 from ..constants import __name__ as plugin_name, \
                         CARD_TMPLT, CONSOLE_USED
 
 from .anki_note_creator_ui import Ui_Dialog
 from ..anki_note_gen import AnkiNoteGenerator
-from ..modules.data_reader.excel_extractor import ExcelWorker
+from ..modules import ExcelWorker, AnkiClientDesktop
 
 MAIN_DLG_FORM, _ = uic.load_ui.loadUiType(os.path.join(os.path.dirname(__file__), 'anki_note_creator_ui.ui'))
 SETTINGS_DLG_FORM, _ = uic.load_ui.loadUiType(os.path.join(os.path.dirname(__file__), 'anki_note_settings_ui.ui'))
@@ -93,26 +93,40 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         self.settings_dlg = self
         self.setupUi(self)
         self.parent = parent
+        self.mw = self.parent.mw
         self.logger = self.parent.logger
         self.input_path = self.parent.input_path
+        self.encoder = Encoder()
         self.excel_worker = ExcelWorker(self)
-        self.connect_signals()
+    #     self.connect_signals()
 
-    def connect_signals(self):
-        pass
+    # def connect_signals(self):
+    #     pass
     
     def fill_values(self, headers):
-        if self.settings_dlg.frontTextCbx.currentText() or \
-            self.settings_dlg.backTextCbx.currentText() or \
-            self.settings_dlg.examplesCbx.currentText():
-            self.settings_dlg.frontTextCbx.clear()
-            self.settings_dlg.backTextCbx.clear()
+        if (
+            self.settings_dlg.nativeLangTextCbx.currentText() or \
+            self.settings_dlg.foreignLangTextCbx.currentText() or \
+            self.settings_dlg.examplesCbx.currentText()
+        ):
+            self.settings_dlg.nativeLangTextCbx.clear()
+            self.settings_dlg.foreignLangTextCbx.clear()
             self.settings_dlg.examplesCbx.clear()
-        self.settings_dlg.frontTextCbx.addItems(headers)
-        self.settings_dlg.backTextCbx.addItems(headers)
+
+        self.anki_client_desktop = AnkiClientDesktop(self)
+
+        self.settings_dlg.nativeLangTextCbx.addItems(headers)
+        self.settings_dlg.foreignLangTextCbx.addItems(headers)
         self.settings_dlg.examplesCbx.addItems(headers)
-        self.settings_dlg.deckNameLineEdit.setText(CARD_TMPLT.get("deckName")) 
-        self.settings_dlg.modelNameLineEdit.setText(CARD_TMPLT.get("modelName"))
+        self.order_items_in_settings_fields()
+
+        self.settings_dlg.deckNameTextCbx.addItems(self.anki_client_desktop.get_decks_and_id().keys()) 
+        self.settings_dlg.modelNameTextCbx.addItems(self.anki_client_desktop.get_models_and_id().keys())
+
+    def order_items_in_settings_fields(self):
+        self.settings_dlg.nativeLangTextCbx.setCurrentIndex(0)
+        self.settings_dlg.foreignLangTextCbx.setCurrentIndex(1)
+        self.settings_dlg.examplesCbx.setCurrentIndex(2)
 
     def run(self):
         self.excel_df = self.excel_worker.regular_excel_to_df(str(self.parent.plugin_dlg.searchLineEdit.text()))
