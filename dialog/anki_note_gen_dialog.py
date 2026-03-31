@@ -54,7 +54,7 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
                 QMessageBox.critical(
                     self.mw,
                     'Anki notes creator',
-                    f"Please select existing XLSX file"
+                    f"Please select existing excel file"
                 )
                 return
         else:
@@ -65,7 +65,7 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
 
     def open_files_window(self):
         file_dlg = QtWidgets.QFileDialog
-        file_name = file_dlg.getOpenFileName(self, caption="Select an XLSX file",filter="XLSX (*.xlsx);;XLS (*.xls)")
+        file_name = file_dlg.getOpenFileName(self, caption="Select an excel file",filter="XLSX (*.xlsx);;XLS (*.xls)")
         
         if isinstance(file_name,str) and file_name:
             if os.path.exists(str(file_name)):
@@ -98,10 +98,10 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         self.input_path = self.parent.input_path
         self.encoder = Encoder()
         self.excel_worker = ExcelWorker(self)
-    #     self.connect_signals()
+        self.connect_signals()
 
-    # def connect_signals(self):
-    #     pass
+    def connect_signals(self):
+        pass
     
     def fill_values(self, headers):
         if (
