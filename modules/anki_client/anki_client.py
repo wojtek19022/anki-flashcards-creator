@@ -84,6 +84,7 @@ class AnkiClientConsole:
 
     def add_note(
         self, 
+        deck_name: str,
         fields: list, 
         front_text: str, 
         back_text: str, 
@@ -97,7 +98,7 @@ class AnkiClientConsole:
         result = invoke(
             'addNote', 
             note = self.note_generator.card_from_txt(
-                CURR_LANG,
+                deck_name,
                 fields = fields,
                 input_str = front_text,
                 output_str = back_text,
@@ -240,6 +241,7 @@ class AnkiClientDesktop:
     
     def add_note(
         self, 
+        deck_name: str,
         fields: list, 
         front_text: str, 
         back_text: str, 
@@ -251,7 +253,7 @@ class AnkiClientDesktop:
         Function adds an ANKI card from input card view
         """
         note_params = self.note_generator.card_from_txt(
-            CURR_LANG,
+            deck_name,
             fields = fields,
             input_str = front_text,
             output_str = back_text,

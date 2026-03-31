@@ -27,9 +27,17 @@ class AnkiNoteGenerator:
         self.logger = self.logging_client.logger
         self.logger.debug(f"NOTE GENERATOR: {self.mw}")
         self.encoder = Encoder()
+        self.selected_model_name = ""
+        self.selected_deck_name = ""
+        self.selected_native_lang_text = ""
+        self.selected_foreign_lang_text = ""
+        self.selected_example_field = ""
         self.anki_client_console = AnkiClientConsole(self)
+
         if not CONSOLE_USED:
+            self.settings_dlg = self.parent.settings_dlg
             self.anki_client_desktop = AnkiClientDesktop(self)
+
         self.excel_worker = ExcelWorker(self)
         self.website_scrapper = WebsiteScrapper() 
         self.data = ""
@@ -43,6 +51,13 @@ class AnkiNoteGenerator:
                         else self.anki_client_desktop.get_fields_by_model_name(MODEL_NAME)
         self.cards_in_deck = self.anki_client_console.get_all_cards_in_deck() if CONSOLE_USED \
                                 else self.anki_client_desktop.get_all_cards_in_deck()
+        if not CONSOLE_USED:
+            self.selected_model_name = self.settings_dlg.modelNameTextCbx.currentText()
+            self.selected_deck_name = self.settings_dlg.deckNameTextCbx.currentText()
+            self.selected_native_lang_text = self.settings_dlg.nativeLangTextCbx.currentText()
+            self.selected_foreign_lang_text = self.settings_dlg.foreignLangTextCbx.currentText()
+            self.selected_example_field = self.settings_dlg.examplesCbx.currentText()
+            
         self.logger.info("Creating of cards was started")
 
         if CONSOLE_USED:
@@ -54,26 +69,26 @@ class AnkiNoteGenerator:
                 self.logger.error(f'Cannot find deck with name: {CURR_LANG} try again with different name')
                 return 
         else:
-            if not MODEL_NAME in self.anki_client_desktop.get_models_names():
+            if not self.selected_model_name in self.anki_client_desktop.get_models_names():
                 QMessageBox.critical(
                     self.mw,
                     'Anki notes creator',
-                    f"Model with name: {MODEL_NAME} is not on ANKI. <br>Try with different name"
+                    f"Model with name: {self.selected_model_name} is not on ANKI. <br>Try with different name"
                 )
-                self.logger.critical(f'Model with name: {MODEL_NAME} is not on ANKI. Try with different name'.encode(SYSTEM_ENCODING, errors="replace"))
+                self.logger.critical(f'Model with name: {self.selected_model_name} is not on ANKI. Try with different name'.encode(SYSTEM_ENCODING, errors="replace"))
                 return 
 
-            if CURR_LANG not in self.anki_client_desktop.get_decks_and_id().keys():
+            if self.selected_deck_name not in self.anki_client_desktop.get_decks_and_id().keys():
                 QMessageBox.critical(
                     self.mw,
                     'Anki notes creator',
-                    f"Cannot find deck with name: {CURR_LANG}. <br>Try again with different name"
+                    f"Cannot find deck with name: {self.selected_deck_name}. <br>Try again with different name"
                 )
-                self.logger.critical(f'Cannot find deck with name: {CURR_LANG}. Try again with different name'.encode(SYSTEM_ENCODING, errors="replace"))
+                self.logger.critical(f'Cannot find deck with name: {self.selected_deck_name}. Try again with different name'.encode(SYSTEM_ENCODING, errors="replace"))
                 return 
 
         self.logger.info("Initial parameters are correct, starder processing excel")
-        self.data = self.excel_worker.excel_to_df(self.data, FIELDS_EXCEL.get('back_text'))
+        self.data = self.excel_worker.excel_to_df(self.data, self.selected_foreign_lang_text)
 
         if not self.data:
             QMessageBox.warning(
@@ -103,9 +118,9 @@ class AnkiNoteGenerator:
         return await asyncio.gather(*tasks)
 
     async def note_creator(self, row):
-        front = clear_string(row[FIELDS_EXCEL.get("front_text")])
-        back = clear_string(row[FIELDS_EXCEL.get("back_text")])
-        example = clear_string(row[FIELDS_EXCEL.get("example")])
+        front = clear_string(row[FIELDS_EXCEL.get("front_text") if CONSOLE_USED else self.selected_native_lang_text])
+        back = clear_string(row[FIELDS_EXCEL.get("back_text") if CONSOLE_USED else self.selected_foreign_lang_text])
+        example = clear_string(row[FIELDS_EXCEL.get("example") if CONSOLE_USED else self.selected_example_field])
         
         if (front not in [note["fields"][FIELDS.get("front_text")]["value"].rstrip() for note in self.cards_in_deck if front == note["fields"][FIELDS.get("front_text")]["value"].rstrip()]
             and back not in [note["fields"][FIELDS.get("back_text")]["value"].rstrip() for note in self.cards_in_deck if back == note["fields"][FIELDS.get("back_text")]["value"].rstrip()]):
@@ -160,6 +175,7 @@ class AnkiNoteGenerator:
             if CONSOLE_USED:
                 try:
                     result = self.anki_client_console.add_note(
+                        deck_name = CURR_LANG,
                         fields = self.fields,
                         front_text = front, 
                         back_text = back,
@@ -176,6 +192,7 @@ class AnkiNoteGenerator:
             else:
                 try:
                     result = self.anki_client_desktop.add_note(
+                        deck_name = self.selected_deck_name,
                         fields = self.fields,
                         front_text = front, 
                         back_text = back,
