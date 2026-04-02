@@ -36,6 +36,7 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
         self.plugin_dlg.searchPushButton.clicked.connect(self.open_files_window)
         self.plugin_dlg.closePushButton.clicked.connect(self.close_plugin)
         self.plugin_dlg.settingsPushButton.clicked.connect(self.open_settings)
+        self.plugin_dlg.rejected.connect(self.onClose)
 
     def input_file_changed(self):
         input_file = self.plugin_dlg.searchLineEdit.text()
@@ -85,7 +86,14 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
         self.plugin_dlg.hide()
     
     def onClose(self):
-        pass
+        self.settings_dlg.selected_native_lang_text = ""
+        self.settings_dlg.selected_foreign_lang_text = ""
+        self.settings_dlg.selected_example_field = ""
+        self.settings_dlg.selected_deck_name = ""
+        self.settings_dlg.selected_model_name = ""
+        self.input_path = ""
+        self.plugin_dlg.searchLineEdit.setText("")
+
 
 class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
     def __init__(self, parent):
@@ -96,27 +104,76 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         self.mw = self.parent.mw
         self.logger = self.parent.logger
         self.input_path = self.parent.input_path
+        self.selected_native_lang_text = ""
+        self.selected_foreign_lang_text = ""
+        self.selected_example_field = ""
+        self.selected_deck_name = ""
+        self.selected_model_name = ""
         self.encoder = Encoder()
         self.excel_worker = ExcelWorker(self)
         self.connect_signals()
 
     def connect_signals(self):
-        pass
-    
-    def fill_values(self, headers):
-        if (
-            self.settings_dlg.nativeLangTextCbx.currentText() or \
-            self.settings_dlg.foreignLangTextCbx.currentText() or \
-            self.settings_dlg.examplesCbx.currentText() or \
-            self.settings_dlg.deckNameTextCbx.currentText() or \
-            self.settings_dlg.modelNameTextCbx.currentText()
-        ):
-            self.settings_dlg.nativeLangTextCbx.clear()
-            self.settings_dlg.foreignLangTextCbx.clear()
-            self.settings_dlg.examplesCbx.clear()
-            self.settings_dlg.deckNameTextCbx.clear()
-            self.settings_dlg.modelNameTextCbx.clear()
+        self.settings_dlg.nativeLangTextCbx.currentTextChanged.connect(self.assignNewNativeLang)
+        self.settings_dlg.foreignLangTextCbx.currentTextChanged.connect(self.assignNewForeignLang)
+        self.settings_dlg.examplesCbx.currentTextChanged.connect(self.assignNewExampleField)
+        self.settings_dlg.deckNameTextCbx.currentTextChanged.connect(self.assignNewDeckName)
+        self.settings_dlg.modelNameTextCbx.currentTextChanged.connect(self.assignNewModelName)
+        # self.settings_dlg.rejected.connect(self.onClose)
 
+    def assignNewNativeLang(self) -> None:
+        self.selected_native_lang_text = self.settings_dlg.nativeLangTextCbx.currentText()
+        self.logger.info(
+            f"No data had been detected for variable {self.selected_native_lang_text.encode('utf-8')}. Below data had been added: {self.settings_dlg.nativeLangTextCbx.currentText().encode('utf-8')}"
+        )
+
+    def assignNewForeignLang(self) -> None:
+        self.selected_foreign_lang_text = self.settings_dlg.foreignLangTextCbx.currentText()
+        self.logger.info(
+            f"No data had been detected for variable {self.selected_foreign_lang_text.encode('utf-8')}. Below data had been added: {self.settings_dlg.foreignLangTextCbx.currentText().encode('utf-8')}"
+        )
+
+    def assignNewExampleField(self) -> None:
+        self.selected_example_field = self.settings_dlg.examplesCbx.currentText()
+        self.logger.info(
+            f"No data had been detected for variable {self.selected_example_field.encode('utf-8')}. Below data had been added: {self.settings_dlg.examplesCbx.currentText().encode('utf-8')}"
+        )
+
+    def assignNewDeckName(self) -> None:
+        self.selected_deck_name = self.settings_dlg.deckNameTextCbx.currentText()
+        self.logger.info(
+            f"No data had been detected for variable {self.selected_deck_name.encode('utf-8')}. Below data had been added: {self.settings_dlg.deckNameTextCbx.currentText().encode('utf-8')}"
+        )
+
+    def assignNewModelName(self) -> None:
+        self.selected_model_name = self.settings_dlg.modelNameTextCbx.currentText()
+        self.logger.info(
+            f"No data had been detected for variable {self.selected_model_name.encode('utf-8')}. Below data had been added: {self.settings_dlg.modelNameTextCbx.currentText().encode('utf-8')}"
+        )
+
+    # def setVariableForItemData(self, variable, data) -> None:
+    #     self.logger.info(
+    #         f"No data had been detected for variable {variable.encode('utf-8')}. Below data had been added: {data.encode('utf-8')}"
+    #     )
+    #     variable = data
+    
+    def checkEmptySettingsData(self):
+        """
+        Funkcja sprawdza czy w settingsach nie ma danych.
+        Jeżeli nie ma żadnych danych, funkcja zwraca True.
+        Jeżeli coś jest w settingsach, funkcja zwraca False
+        """
+        if not self.selected_native_lang_text and \
+            self.selected_foreign_lang_text and \
+            self.selected_example_field and \
+            self.selected_deck_name and \
+            self.selected_model_name: 
+            self.logger.info("No data had been previously added to settings. Initializing")
+            return True
+        else:
+            return False
+    
+    def fillValues(self, headers):
         self.anki_client_desktop = AnkiClientDesktop(self)
 
         self.settings_dlg.nativeLangTextCbx.addItems(headers)
@@ -135,8 +192,19 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
     def run(self):
         self.excel_df = self.excel_worker.regular_excel_to_df(str(self.parent.plugin_dlg.searchLineEdit.text()))
         headers = self.excel_worker.read_headers(self.excel_df)
-        self.fill_values(headers)
+        if self.checkEmptySettingsData:
+            self.fillValues(headers)
         self.settings_dlg.show()
 
     def onClose(self):
-        pass
+        self.selected_native_lang_text = ""
+        self.selected_foreign_lang_text = ""
+        self.selected_example_field = ""
+        self.selected_deck_name = ""
+        self.selected_model_name = ""
+        self.settings_dlg.nativeLangTextCbx.clear()
+        self.settings_dlg.foreignLangTextCbx.clear()
+        self.settings_dlg.examplesCbx.clear()
+        self.settings_dlg.deckNameTextCbx.clear()
+        self.settings_dlg.modelNameTextCbx.clear()
+
