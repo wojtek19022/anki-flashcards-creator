@@ -52,11 +52,11 @@ class AnkiNoteGenerator:
         self.cards_in_deck = self.anki_client_console.get_all_cards_in_deck() if CONSOLE_USED \
                                 else self.anki_client_desktop.get_all_cards_in_deck()
         if not CONSOLE_USED:
-            self.selected_model_name = self.settings_dlg.modelNameTextCbx.currentText()
-            self.selected_deck_name = self.settings_dlg.deckNameTextCbx.currentText()
-            self.selected_native_lang_text = self.settings_dlg.nativeLangTextCbx.currentText()
-            self.selected_foreign_lang_text = self.settings_dlg.foreignLangTextCbx.currentText()
-            self.selected_example_field = self.settings_dlg.examplesCbx.currentText()
+            self.selected_model_name = self.settings_dlg.selected_model_name
+            self.selected_deck_name = self.settings_dlg.selected_deck_name
+            self.selected_native_lang_text = self.settings_dlg.selected_native_lang_text
+            self.selected_foreign_lang_text = self.settings_dlg.selected_foreign_lang_text
+            self.selected_example_field = self.settings_dlg.selected_example_field
             
         self.logger.info("Creating of cards was started")
 
