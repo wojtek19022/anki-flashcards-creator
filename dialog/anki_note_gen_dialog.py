@@ -164,10 +164,10 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         Jeżeli coś jest w settingsach, funkcja zwraca False
         """
         if not self.selected_native_lang_text and \
-            self.selected_foreign_lang_text and \
-            self.selected_example_field and \
-            self.selected_deck_name and \
-            self.selected_model_name: 
+            not self.selected_foreign_lang_text and \
+            not self.selected_example_field and \
+            not self.selected_deck_name and \
+            not self.selected_model_name: 
             self.logger.info("No data had been previously added to settings. Initializing")
             return True
         else:
@@ -192,7 +192,7 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
     def run(self):
         self.excel_df = self.excel_worker.regular_excel_to_df(str(self.parent.plugin_dlg.searchLineEdit.text()))
         headers = self.excel_worker.read_headers(self.excel_df)
-        if self.checkEmptySettingsData:
+        if self.checkEmptySettingsData():
             self.fillValues(headers)
         self.settings_dlg.show()
 
