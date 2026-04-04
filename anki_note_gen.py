@@ -47,10 +47,10 @@ class AnkiNoteGenerator:
 
     async def main(self, input_path):
         self.data = input_path
-        self.fields = self.anki_client_console.get_fields_by_model_name(MODEL_NAME) if CONSOLE_USED \
-                        else self.anki_client_desktop.get_fields_by_model_name(MODEL_NAME)
-        self.cards_in_deck = self.anki_client_console.get_all_cards_in_deck() if CONSOLE_USED \
-                                else self.anki_client_desktop.get_all_cards_in_deck()
+        self.fields = self.anki_client_console.getFieldsByModelName(MODEL_NAME) if CONSOLE_USED \
+                        else self.anki_client_desktop.getFieldsByModelName(MODEL_NAME)
+        self.cards_in_deck = self.anki_client_console.getAllCardsInDeck() if CONSOLE_USED \
+                                else self.anki_client_desktop.getAllCardsInDeck()
         if not CONSOLE_USED:
             self.selected_model_name = self.settings_dlg.selected_model_name
             self.selected_deck_name = self.settings_dlg.selected_deck_name
@@ -61,15 +61,15 @@ class AnkiNoteGenerator:
         self.logger.info("Creating of cards was started")
 
         if CONSOLE_USED:
-            if not MODEL_NAME in self.anki_client_console.get_models_names():
+            if not MODEL_NAME in self.anki_client_console.getModelsNames():
                 self.logger.error(f'Model with name: {MODEL_NAME} is not on ANKI. Try with different name')
                 return 
             
-            if CURR_LANG not in self.anki_client_console.get_decks_and_id().keys():
+            if CURR_LANG not in self.anki_client_console.getDecksAndID().keys():
                 self.logger.error(f'Cannot find deck with name: {CURR_LANG} try again with different name')
                 return 
         else:
-            if not self.selected_model_name in self.anki_client_desktop.get_models_names():
+            if not self.selected_model_name in self.anki_client_desktop.getModelsNames():
                 QMessageBox.critical(
                     self.mw,
                     'Anki notes creator',
@@ -78,7 +78,7 @@ class AnkiNoteGenerator:
                 self.logger.critical(f'Model with name: {self.selected_model_name} is not on ANKI. Try with different name'.encode(SYSTEM_ENCODING, errors="replace"))
                 return 
 
-            if self.selected_deck_name not in self.anki_client_desktop.get_decks_and_id().keys():
+            if self.selected_deck_name not in self.anki_client_desktop.getDecksAndID().keys():
                 QMessageBox.critical(
                     self.mw,
                     'Anki notes creator',
@@ -88,7 +88,7 @@ class AnkiNoteGenerator:
                 return 
 
         self.logger.info("Initial parameters are correct, starder processing excel")
-        self.data = self.excel_worker.excel_to_df(self.data, self.selected_foreign_lang_text)
+        self.data = self.excel_worker.excelToDf(self.data, self.selected_foreign_lang_text)
 
         if not self.data:
             QMessageBox.warning(
@@ -100,24 +100,24 @@ class AnkiNoteGenerator:
             return
         
         num_cards = range(1, len(self.data))  # Define the range based on the GeoDataFrame
-        await self.threaded_build_tasks()
+        await self.threadedBuildTasks()
     
-    async def threaded_build_tasks(self):
-        """Execute build_tasks across multiple threads with proper async integration"""
+    async def threadedBuildTasks(self):
+        """Execute buildTasks across multiple threads with proper async integration"""
         with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
             loop = asyncio.get_event_loop()
             futures = [
-                loop.run_in_executor(executor, self.run_coroutine, row)
+                loop.run_in_executor(executor, self.runCoroutine, row)
                 for row in self.data
             ]
             results = await asyncio.gather(*futures)
             return results
 
-    async def build_tasks(self, search_num):
-        tasks = [self.note_creator(obj) for obj in search_num]
+    async def buildTasks(self, search_num):
+        tasks = [self.noteCreator(obj) for obj in search_num]
         return await asyncio.gather(*tasks)
 
-    async def note_creator(self, row):
+    async def noteCreator(self, row):
         front = clear_string(row[FIELDS_EXCEL.get("front_text") if CONSOLE_USED else self.selected_native_lang_text])
         back = clear_string(row[FIELDS_EXCEL.get("back_text") if CONSOLE_USED else self.selected_foreign_lang_text])
         example = clear_string(row[FIELDS_EXCEL.get("example") if CONSOLE_USED else self.selected_example_field])
@@ -134,12 +134,12 @@ class AnkiNoteGenerator:
             upl_audio_file = ""
             upl_image_file = ""
 
-            soup = self.website_scrapper.request_website(
+            soup = self.website_scrapper.requestWebsite(
                 get_dict_link_for_lang(DICT_LANG_SEARCH_URLS, CURR_LANG)+f"?q={back}"
             )
             if soup:
-                image_url = self.website_scrapper.scrape_first_image(soup)
-                audio_url = self.website_scrapper.scrape_first_audio(soup)
+                image_url = self.website_scrapper.scrapeFirstImage(soup)
+                audio_url = self.website_scrapper.scrapeFirstAudio(soup)
             
             if audio_url:
                 audio_file_name = os.path.basename(audio_url)
@@ -147,24 +147,24 @@ class AnkiNoteGenerator:
                 image_file_name = os.path.basename(image_url)
 
             if audio_file_name:
-                upl_audio_file = self.anki_client_console.retrieve_uploaded_file(audio_file_name) if CONSOLE_USED \
-                                    else self.anki_client_desktop.retrieve_uploaded_file(audio_file_name)
+                upl_audio_file = self.anki_client_console.retrieveUploadedFile(audio_file_name) if CONSOLE_USED \
+                                    else self.anki_client_desktop.retrieveUploadedFile(audio_file_name)
             if image_file_name:
-                upl_image_file = self.anki_client_console.retrieve_uploaded_file(image_file_name) if CONSOLE_USED \
-                                    else self.anki_client_desktop.retrieve_uploaded_file(image_file_name)
+                upl_image_file = self.anki_client_console.retrieveUploadedFile(image_file_name) if CONSOLE_USED \
+                                    else self.anki_client_desktop.retrieveUploadedFile(image_file_name)
 
             self.logger.debug(f"Image file: {upl_image_file}, audio file: {upl_audio_file}")
             
             if audio_url and upl_audio_file is False:
-                audio_upl = self.anki_client_console.store_file_in_anki(audio_file_name, audio_url) if CONSOLE_USED \
-                                    else self.anki_client_desktop.store_file_in_anki(audio_file_name, audio_url)
+                audio_upl = self.anki_client_console.storeFileInAnki(audio_file_name, audio_url) if CONSOLE_USED \
+                                    else self.anki_client_desktop.storeFileInAnki(audio_file_name, audio_url)
                 self.logger.info(f"Uploaded new audio: {audio_upl}")
             elif upl_audio_file:
                 audio_upl = audio_file_name
 
             if image_url and upl_image_file is False:
-                image_upl = self.anki_client_console.store_file_in_anki(image_file_name, image_url) if CONSOLE_USED \
-                                    else self.anki_client_desktop.store_file_in_anki(image_file_name, image_url)
+                image_upl = self.anki_client_console.storeFileInAnki(image_file_name, image_url) if CONSOLE_USED \
+                                    else self.anki_client_desktop.storeFileInAnki(image_file_name, image_url)
                 self.logger.info(f"Uploaded new image: {image_upl}")
             elif upl_image_file:
                 image_upl = image_file_name
@@ -174,7 +174,7 @@ class AnkiNoteGenerator:
 
             if CONSOLE_USED:
                 try:
-                    result = self.anki_client_console.add_note(
+                    result = self.anki_client_console.addNote(
                         deck_name = CURR_LANG,
                         fields = self.fields,
                         front_text = front, 
@@ -191,7 +191,7 @@ class AnkiNoteGenerator:
                     self.logger.error(f"Unknown error occured: {ex}")
             else:
                 try:
-                    result = self.anki_client_desktop.add_note(
+                    result = self.anki_client_desktop.addNote(
                         deck_name = self.selected_deck_name,
                         fields = self.fields,
                         front_text = front, 
@@ -209,9 +209,9 @@ class AnkiNoteGenerator:
         else:
             self.logger.error(f"Word '{back}' is already used for some card in Anki")
     
-    def run_coroutine(self, row):
+    def runCoroutine(self, row):
         """Run the coroutine in an event loop"""
-        return asyncio.run(self.note_creator(row))
+        return asyncio.run(self.noteCreator(row))
 
 
 # if __name__ == "__main__":

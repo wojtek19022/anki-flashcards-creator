@@ -10,7 +10,7 @@ if not CONSOLE_USED:
     from anki import notes, sync
 
 class NoteGenerator:
-    def card_from_txt(
+    def cardFromTXT(
         self,
         deck: str,
         fields: list,
@@ -39,14 +39,14 @@ class AnkiClientConsole:
         self.parent = parent
         self.note_generator = NoteGenerator()
 
-    def get_all_cards_in_deck(self):
+    def getAllCardsInDeck(self):
         return [
-            card for card in self.get_cards_details(self.find_all_notes()) \
+            card for card in self.getCardsDetails(self.findAllNotes()) \
             if card != {} and card["modelName"] == MODEL_NAME
         ]
 
     @staticmethod
-    def get_fields_by_model_name(model_name: str) -> list:
+    def getFieldsByModelName(model_name: str) -> list:
         """
         Get fields of a card view
         """
@@ -57,7 +57,7 @@ class AnkiClientConsole:
         return result
 
     @staticmethod
-    def get_models_names() -> list:
+    def getModelsNames() -> list:
         """
         Get available models (cards views)
         """
@@ -65,7 +65,7 @@ class AnkiClientConsole:
         return result
 
     @staticmethod
-    def get_decks_and_id() -> dict:
+    def getDecksAndID() -> dict:
         """
         Get all decks with assigned ids
         """
@@ -73,7 +73,7 @@ class AnkiClientConsole:
         return result
 
     @staticmethod
-    def get_fields_for_deck():
+    def getFieldsForDeck():
         """
         Get selected deck config
         """
@@ -82,7 +82,7 @@ class AnkiClientConsole:
             deck=f"'{CURR_LANG}'"
         )
 
-    def add_note(
+    def addNote(
         self, 
         deck_name: str,
         fields: list, 
@@ -97,7 +97,7 @@ class AnkiClientConsole:
         """
         result = invoke(
             'addNote', 
-            note = self.note_generator.card_from_txt(
+            note = self.note_generator.cardFromTXT(
                 deck_name,
                 fields = fields,
                 input_str = front_text,
@@ -110,7 +110,7 @@ class AnkiClientConsole:
 
         return result
 
-    def find_all_notes(self) -> list:
+    def findAllNotes(self) -> list:
         """
         Function returns all available cards in all decks
         """
@@ -120,7 +120,7 @@ class AnkiClientConsole:
         )
         return result
 
-    def get_cards_details(self, cards_list: list) -> dict:
+    def getCardsDetails(self, cards_list: list) -> dict:
         """
         Function returns ANKI card information
         """
@@ -130,7 +130,7 @@ class AnkiClientConsole:
         )
         return result
 
-    def store_file_in_anki(self, filename: str, url: str) -> str:
+    def storeFileInAnki(self, filename: str, url: str) -> str:
         """
         Function stores any kind of a file from URL
         """
@@ -141,7 +141,7 @@ class AnkiClientConsole:
         )
         return result
 
-    def retrieve_uploaded_file(self, filename: str) -> str:
+    def retrieveUploadedFile(self, filename: str) -> str:
         """
         Function returns a file that was added into ANKI files repository
         """
@@ -172,63 +172,63 @@ class AnkiClientDesktop:
 
         return client.streamContent(resp)
 
-    def get_all_cards_in_deck(self):
+    def getAllCardsInDeck(self):
         return [
-            card for card in self.get_cards_details(self.find_all_notes())# \
+            card for card in self.getCardsDetails(self.findAllNotes())# \
             if card != {} and card["modelName"] == MODEL_NAME
         ]
 
-    def get_all_models(self) -> list:
+    def getAllModels(self) -> list:
         return self.mw.col.models.all()
 
-    def get_all_decks(self) -> list:
+    def getAllMecks(self) -> list:
         return self.mw.col.decks.all()
 
-    def get_models_names(self) -> list:
+    def getModelsNames(self) -> list:
         """
         Get available models (cards views)
         """
-        result = [model["name"] for model in self.get_all_models()]
+        result = [model["name"] for model in self.getAllModels()]
         return result
 
-    def get_cards_details(self, cards_list: list) -> list:
+    def getCardsDetails(self, cards_list: list) -> list:
         """
         Function returns ANKI card information
         """
         result = self.anki_backend.cardsInfo(cards_list)
         return result
     
-    def find_all_notes(self) -> list:
+    def findAllNotes(self) -> list:
         """
         Function returns all available cards in all decks
         """
         result = self.mw.col.find_cards('deck:*')
         return result
 
-    def get_fields_by_model_name(self, model_name) -> list:
-        models = self.get_all_models()
+    def getFieldsByModelName(self, model_name) -> list:
+        models = self.getAllModels()
         fields = [model.get("flds") for model in models if model["name"]==model_name]
         fields_names = list(map(lambda d: d["name"], fields[0]))
         return fields_names
 
-    def get_decks_and_id(self):
+    def getDecksAndID(self):
         return {
             deck["name"]:deck["id"] for deck \
-            in self.get_all_decks()
+            in self.getAllMecks()
         }
 
-    def get_models_and_id(self):
+    def getModelsAndID(self):
         return {
             model["name"]:model["id"] for model \
-            in self.get_all_models()
+            in self.getAllModels()
         }
 
-    def retrieve_uploaded_file(self, filename: str):
+    def retrieveUploadedFile(self, filename: str):
         file = os.path.join(self.mw.col.media.dir(), filename)
         return True if (os.path.exists(file) and os.path.isfile(file)) \
                     else False
 
-    def store_file_in_anki(self, file_name: str, file_url: str):
+    def storeFileInAnki(self, file_name: str, file_url: str):
         self.logger.debug(f"Downloaded media filename: {file_name}; file url: {file_url}")
         file = self.download(file_url)
         # return self.mw.col.media.add_file(
@@ -239,7 +239,7 @@ class AnkiClientDesktop:
             file#self.encoder.encode_string(file_url)
         )
     
-    def add_note(
+    def addNote(
         self, 
         deck_name: str,
         fields: list, 
@@ -252,7 +252,7 @@ class AnkiClientDesktop:
         """
         Function adds an ANKI card from input card view
         """
-        note_params = self.note_generator.card_from_txt(
+        note_params = self.note_generator.cardFromTXT(
             deck_name,
             fields = fields,
             input_str = front_text,
@@ -263,7 +263,7 @@ class AnkiClientDesktop:
         )
         # self.logger.debug(note_params.items())
 
-        note = self.create_note(
+        note = self.createNote(
             CURR_LANG,
             params = note_params
         )
@@ -274,10 +274,10 @@ class AnkiClientDesktop:
 
         return note.id
     
-    def create_note(self, deck, params):
-        models = self.get_models_and_id()
+    def createNote(self, deck, params):
+        models = self.getModelsAndID()
         note = notes.Note(self.mw.col, self.mw.col.models.get(models.get(MODEL_NAME)))
-        note.note_type()['did'] = self.get_decks_and_id()[deck]
+        note.note_type()['did'] = self.getDecksAndID()[deck]
         
         for name, value in params["fields"].items():
             if name in note:
