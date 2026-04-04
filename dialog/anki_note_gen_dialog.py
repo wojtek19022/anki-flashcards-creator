@@ -28,27 +28,27 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
         self.logger = self.logging_client.logger
         self.settings_dlg = AnkiNoteGenSettingsDialog(self)
         self.note_generator = AnkiNoteGenerator(self)
-        self.connect_signals()
+        self.connectSignals()
 
-    def connect_signals(self):
-        self.plugin_dlg.searchLineEdit.textChanged.connect(self.input_file_changed)
-        self.plugin_dlg.okPushButton.clicked.connect(self.prepare_inputs)
-        self.plugin_dlg.searchPushButton.clicked.connect(self.open_files_window)
-        self.plugin_dlg.closePushButton.clicked.connect(self.close_plugin)
-        self.plugin_dlg.settingsPushButton.clicked.connect(self.open_settings)
+    def connectSignals(self):
+        self.plugin_dlg.searchLineEdit.textChanged.connect(self.inputFileChanged)
+        self.plugin_dlg.okPushButton.clicked.connect(self.prepareInputs)
+        self.plugin_dlg.searchPushButton.clicked.connect(self.openFilesWindow)
+        self.plugin_dlg.closePushButton.clicked.connect(self.closePlugin)
+        self.plugin_dlg.settingsPushButton.clicked.connect(self.openSettings)
         self.plugin_dlg.rejected.connect(self.onClose)
 
-    def input_file_changed(self):
+    def inputFileChanged(self):
         input_file = self.plugin_dlg.searchLineEdit.text()
         if input_file and os.path.exists(input_file):
             # TODO tutaj trzeba dodać fragment do odczytywania w locie zawartości pliku XLSX (headerów i wpisać w comboboxy)
             self.plugin_dlg.settingsPushButton.setEnabled(True)
-            self.plugin_dlg.okPushButton.setEnabled(True)
+            self.plugin_dlg.okPushButton.setEnabled(False)
         else:
             self.plugin_dlg.settingsPushButton.setEnabled(False)
             self.plugin_dlg.okPushButton.setEnabled(False)
 
-    def prepare_inputs(self):
+    def prepareInputs(self):
         if not CONSOLE_USED:
             self.input_path = self.plugin_dlg.searchLineEdit.text()
             if self.input_path == 0 or not self.input_path:
@@ -64,7 +64,7 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
         if os.path.exists(self.input_path):
             asyncio.run(self.note_generator.main(self.input_path))
 
-    def open_files_window(self):
+    def openFilesWindow(self):
         file_dlg = QtWidgets.QFileDialog
         file_name = file_dlg.getOpenFileName(self, caption="Select an excel file",filter="XLSX (*.xlsx);;XLS (*.xls)")
         
@@ -76,13 +76,13 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
             if os.path.exists(file):
                 self.plugin_dlg.searchLineEdit.setText(file)
 
-    def open_settings(self):
+    def openSettings(self):
         self.settings_dlg.run()
 
     def run(self):
         self.plugin_dlg.show()
 
-    def close_plugin(self):
+    def closePlugin(self):
         self.plugin_dlg.hide()
     
     def onClose(self):
@@ -101,6 +101,7 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         self.settings_dlg = self
         self.setupUi(self)
         self.parent = parent
+        self.plugin_dlg = self.parent.plugin_dlg
         self.mw = self.parent.mw
         self.logger = self.parent.logger
         self.input_path = self.parent.input_path
@@ -111,15 +112,15 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         self.selected_model_name = ""
         self.encoder = Encoder()
         self.excel_worker = ExcelWorker(self)
-        self.connect_signals()
+        self.connectSignals()
 
-    def connect_signals(self):
+    def connectSignals(self):
         self.settings_dlg.nativeLangTextCbx.currentTextChanged.connect(self.assignNewNativeLang)
         self.settings_dlg.foreignLangTextCbx.currentTextChanged.connect(self.assignNewForeignLang)
         self.settings_dlg.examplesCbx.currentTextChanged.connect(self.assignNewExampleField)
         self.settings_dlg.deckNameTextCbx.currentTextChanged.connect(self.assignNewDeckName)
         self.settings_dlg.modelNameTextCbx.currentTextChanged.connect(self.assignNewModelName)
-        # self.settings_dlg.rejected.connect(self.onClose)
+        self.settings_dlg.rejected.connect(self.onClose)
 
     def assignNewNativeLang(self) -> None:
         self.selected_native_lang_text = self.settings_dlg.nativeLangTextCbx.currentText()
@@ -179,32 +180,33 @@ class AnkiNoteGenSettingsDialog(QtWidgets.QDialog, SETTINGS_DLG_FORM):
         self.settings_dlg.nativeLangTextCbx.addItems(headers)
         self.settings_dlg.foreignLangTextCbx.addItems(headers)
         self.settings_dlg.examplesCbx.addItems(headers)
-        self.order_items_in_settings_fields()
+        self.orderItemsInSettingsFields()
 
-        self.settings_dlg.deckNameTextCbx.addItems(self.anki_client_desktop.get_decks_and_id().keys()) 
-        self.settings_dlg.modelNameTextCbx.addItems(self.anki_client_desktop.get_models_and_id().keys())
+        self.settings_dlg.deckNameTextCbx.addItems(self.anki_client_desktop.getDecksAndID().keys()) 
+        self.settings_dlg.modelNameTextCbx.addItems(self.anki_client_desktop.getModelsAndID().keys())
 
-    def order_items_in_settings_fields(self):
+    def orderItemsInSettingsFields(self):
         self.settings_dlg.nativeLangTextCbx.setCurrentIndex(0)
         self.settings_dlg.foreignLangTextCbx.setCurrentIndex(1)
         self.settings_dlg.examplesCbx.setCurrentIndex(2)
 
     def run(self):
-        self.excel_df = self.excel_worker.regular_excel_to_df(str(self.parent.plugin_dlg.searchLineEdit.text()))
-        headers = self.excel_worker.read_headers(self.excel_df)
+        self.excel_df = self.excel_worker.regularExcelToDf(str(self.parent.plugin_dlg.searchLineEdit.text()))
+        headers = self.excel_worker.readHeaders(self.excel_df)
         if self.checkEmptySettingsData():
             self.fillValues(headers)
         self.settings_dlg.show()
 
     def onClose(self):
-        self.selected_native_lang_text = ""
-        self.selected_foreign_lang_text = ""
-        self.selected_example_field = ""
-        self.selected_deck_name = ""
-        self.selected_model_name = ""
-        self.settings_dlg.nativeLangTextCbx.clear()
-        self.settings_dlg.foreignLangTextCbx.clear()
-        self.settings_dlg.examplesCbx.clear()
-        self.settings_dlg.deckNameTextCbx.clear()
-        self.settings_dlg.modelNameTextCbx.clear()
+        self.plugin_dlg.okPushButton.setEnabled(True)
+        # self.selected_native_lang_text = ""
+        # self.selected_foreign_lang_text = ""
+        # self.selected_example_field = ""
+        # self.selected_deck_name = ""
+        # self.selected_model_name = ""
+        # self.settings_dlg.nativeLangTextCbx.clear()
+        # self.settings_dlg.foreignLangTextCbx.clear()
+        # self.settings_dlg.examplesCbx.clear()
+        # self.settings_dlg.deckNameTextCbx.clear()
+        # self.settings_dlg.modelNameTextCbx.clear()
 

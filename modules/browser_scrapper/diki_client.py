@@ -7,7 +7,7 @@ from ...constants import DIKI_MAIN_URL
 
 class WebsiteScrapper:
 
-    def request_website(self, url):
+    def requestWebsite(self, url):
         response = requests.get(url)
         
         # Check if the request was successful
@@ -16,7 +16,7 @@ class WebsiteScrapper:
             soup = BeautifulSoup(response.text, 'html.parser')
             return soup
 
-    def scrape_first_image(self, soup):
+    def scrapeFirstImage(self, soup):
         dictionary_record = soup.find("div", {"class": "dictionaryEntity"})
         if dictionary_record:
             # Find the first image and its annotation
@@ -27,7 +27,7 @@ class WebsiteScrapper:
             else:
                 return ""
 
-    def scrape_first_audio(self, soup):
+    def scrapeFirstAudio(self, soup):
         dictionary_record = soup.find("span", {"class": "recordingsAndTranscriptions"})
         if dictionary_record:
 
@@ -48,7 +48,7 @@ class WebsiteScrapper:
 
 # # Example usage
 # url = "https://www.diki.pl/slownik-angielskiego?q=rozmowa"
-# image_url, annotation = scrape_first_image_and_annotation(url)
+# image_url, annotation = scrapeFirstImage_and_annotation(url)
 
 # print("Image URL:", image_url)
 # print("Annotation:", annotation)
