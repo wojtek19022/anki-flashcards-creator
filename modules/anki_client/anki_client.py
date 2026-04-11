@@ -13,7 +13,7 @@ class NoteGenerator:
     def cardFromTXT(
         self,
         deck: str,
-        fields: list,
+        fields: dict,
         input_str: str, 
         output_str: str,
         image: str,
@@ -23,7 +23,7 @@ class NoteGenerator:
         """
         Function prepares ANKI Note to be send to a database - assigns attributes to correct columns
         """
-        CARD_TMPLT['fields'] = set_up_fields_for_model(fields)
+        CARD_TMPLT['fields'] = set_up_fields_for_model(FIELDS)
         CARD_TMPLT['fields'][FIELDS.get("front_text")] = input_str
         CARD_TMPLT['fields'][FIELDS.get("back_text")] = output_str
         CARD_TMPLT['fields'][FIELDS.get("example")] = example
@@ -241,13 +241,13 @@ class AnkiClientDesktop:
     
     def addNote(
         self, 
-        deck_name: str,
-        fields: list, 
-        front_text: str, 
-        back_text: str, 
-        example: str, 
-        image: str, 
-        audio: str
+        deck_name,#: str,
+        fields,#: dict, 
+        front_text,#: str, 
+        back_text,#: str, 
+        example,#: str, 
+        image,#: str, 
+        audio,#: str
     ):
         """
         Function adds an ANKI card from input card view
