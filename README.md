@@ -38,6 +38,8 @@ If user doesn't know which parameters have to be in a card model, it is also pre
 
 Above parameters are also defined in [constants.py](./constants.py) in a variable `FIELDS` values. This is the place where it can be changed.
 
+**WARNING** In order to provide correct working of a plugin, install Anki Connector plugin and open Anki App. 
+
 ## GUI
 To generate new notes, user has to follow below steps:
 
