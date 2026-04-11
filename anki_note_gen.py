@@ -8,12 +8,13 @@ from aqt.qt import QMessageBox
 from .constants import __name__ as plugin_name, \
                         SYSTEM_ENCODING, \
                         CONSOLE_USED, CURR_LANG, DEFAULT_NUM_PROC, \
-                        MODEL_NAME, LANGUAGES_DECKS, FIELDS_EXCEL, FIELDS, DICT_LANG_SEARCH_URLS, \
-                        DIKI_MAIN_URL
+                        MODEL_NAME, FIELDS_EXCEL, FIELDS, DICT_LANG_SEARCH_URLS
 
 
-from .utils import invoke, clear_string, get_dict_link_for_lang, Logger, Encoder
-from .modules import AnkiClientConsole, AnkiClientDesktop, ExcelWorker, WebsiteScrapper
+from .utils import clear_string, get_dict_link_for_lang, Logger, Encoder
+from .modules import AnkiClientConsole, AnkiClientDesktop, \
+                    AnkiModulesValidator, \
+                    ExcelWorker, WebsiteScrapper
 
 # import anki plugin GUI components
 if CONSOLE_USED:    
@@ -32,6 +33,7 @@ class AnkiNoteGenerator:
         self.selected_native_lang_text = ""
         self.selected_foreign_lang_text = ""
         self.selected_example_field = ""
+        self.anki_modules_validator = AnkiModulesValidator(self)
         self.anki_client_console = AnkiClientConsole(self)
 
         if not CONSOLE_USED:
@@ -47,8 +49,7 @@ class AnkiNoteGenerator:
 
     async def main(self, input_path):
         self.data = input_path
-        self.fields = self.anki_client_console.getFieldsByModelName(MODEL_NAME) if CONSOLE_USED \
-                        else self.anki_client_desktop.getFieldsByModelName(MODEL_NAME)
+
         self.cards_in_deck = self.anki_client_console.getAllCardsInDeck() if CONSOLE_USED \
                                 else self.anki_client_desktop.getAllCardsInDeck()
         if not CONSOLE_USED:
@@ -57,7 +58,27 @@ class AnkiNoteGenerator:
             self.selected_native_lang_text = self.settings_dlg.selected_native_lang_text
             self.selected_foreign_lang_text = self.settings_dlg.selected_foreign_lang_text
             self.selected_example_field = self.settings_dlg.selected_example_field
-            
+
+        self.fields = self.anki_client_console.getFieldsByModelName(MODEL_NAME) if CONSOLE_USED \
+                        else self.anki_client_desktop.getFieldsByModelName(self.selected_model_name)
+
+        is_valid_struct = self.anki_modules_validator.validateStructure(
+            input_structure=self.fields,
+            dest_structure=FIELDS
+        )
+
+        if not is_valid_struct:
+            if not CONSOLE_USED:
+                QMessageBox.critical(
+                    self.mw,
+                    'Anki notes creator',
+                    f"Structure of fields in model is not correct. Look at logs"
+                )   
+            encoded_input_fields = [field.encode('utf-8') for field in self.fields]
+            encoded_dest_fields = [field.encode('utf-8') for field in FIELDS.values()]
+            self.logger.warning(f"Structure of fields in model is not correct: {encoded_input_fields}. It should be: {encoded_dest_fields}")
+            return 
+
         self.logger.info("Creating of cards was started")
 
         if CONSOLE_USED:
@@ -121,7 +142,7 @@ class AnkiNoteGenerator:
         front = clear_string(row[FIELDS_EXCEL.get("front_text") if CONSOLE_USED else self.selected_native_lang_text])
         back = clear_string(row[FIELDS_EXCEL.get("back_text") if CONSOLE_USED else self.selected_foreign_lang_text])
         example = clear_string(row[FIELDS_EXCEL.get("example") if CONSOLE_USED else self.selected_example_field])
-        
+
         if (front not in [note["fields"][FIELDS.get("front_text")]["value"].rstrip() for note in self.cards_in_deck if front == note["fields"][FIELDS.get("front_text")]["value"].rstrip()]
             and back not in [note["fields"][FIELDS.get("back_text")]["value"].rstrip() for note in self.cards_in_deck if back == note["fields"][FIELDS.get("back_text")]["value"].rstrip()]):
             
@@ -214,10 +235,10 @@ class AnkiNoteGenerator:
         return asyncio.run(self.noteCreator(row))
 
 
-# if __name__ == "__main__":
-#     while True:
-        # data = str(input("Type in a directory to excel data with words to ANKI integrator: "))
-        # generator = AnkiNoteGenerator(data)
-        # if os.path.exists(data):
-        #     asyncio.run(generator.main())
-        #     break
+if CONSOLE_USED:
+    while True:
+        data = str(input("Type in a directory to excel data with words to ANKI integrator: "))
+        generator = AnkiNoteGenerator(data)
+        if os.path.exists(data):
+            asyncio.run(generator.main())
+            break

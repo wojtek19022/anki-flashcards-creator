@@ -69,6 +69,12 @@ def get_dict_link_for_lang(lang_dict, select_lang):
     return lang_dict.get(select_lang)
 
 
+class Utilizator:
+    @staticmethod
+    def utilizeWords(values):
+        return sorted(values, key=lambda x: x.lower().encode("utf-8"))
+
+
 class Encoder:
     @staticmethod
     def encode_string(filepath: str):
