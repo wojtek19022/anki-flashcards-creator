@@ -1,1 +1,0 @@
-current dir: C:\Users\wojta\AppData\Roaming\Anki2\addons21\anki-flashcards-creator\__init__.py
