@@ -1,5 +1,4 @@
 import os
-import logging
 import asyncio
 
 from concurrent.futures import ThreadPoolExecutor
@@ -23,11 +22,16 @@ if CONSOLE_USED:
 class AnkiNoteGenerator:
     def __init__(self, parent):
         self.parent = parent
-        self.mw = self.parent.mw
+        self.encoder = Encoder()
         self.logging_client = Logger(name = plugin_name)
         self.logger = self.logging_client.logger
-        self.logger.debug(f"NOTE GENERATOR: {self.mw}")
-        self.encoder = Encoder()
+        
+        if not CONSOLE_USED:
+            self.mw = self.parent.mw
+            self.logger.debug(f"NOTE GENERATOR: {self.mw}")
+            self.settings_dlg = self.parent.settings_dlg
+            self.anki_client_desktop = AnkiClientDesktop(self)
+
         self.selected_model_name = ""
         self.selected_deck_name = ""
         self.selected_native_lang_text = ""
@@ -35,11 +39,6 @@ class AnkiNoteGenerator:
         self.selected_example_field = ""
         self.anki_modules_validator = AnkiModulesValidator(self)
         self.anki_client_console = AnkiClientConsole(self)
-
-        if not CONSOLE_USED:
-            self.settings_dlg = self.parent.settings_dlg
-            self.anki_client_desktop = AnkiClientDesktop(self)
-
         self.excel_worker = ExcelWorker(self)
         self.website_scrapper = WebsiteScrapper() 
         self.data = ""
@@ -58,6 +57,12 @@ class AnkiNoteGenerator:
             self.selected_native_lang_text = self.settings_dlg.selected_native_lang_text
             self.selected_foreign_lang_text = self.settings_dlg.selected_foreign_lang_text
             self.selected_example_field = self.settings_dlg.selected_example_field
+        else:
+            self.selected_model_name = MODEL_NAME
+            self.selected_deck_name = CURR_LANG
+            self.selected_native_lang_text = FIELDS_EXCEL.get("front_text")
+            self.selected_foreign_lang_text = FIELDS_EXCEL.get("back_text")
+            self.selected_example_field = FIELDS_EXCEL.get("example")
 
         self.fields = self.anki_client_console.getFieldsByModelName(MODEL_NAME) if CONSOLE_USED \
                         else self.anki_client_desktop.getFieldsByModelName(self.selected_model_name)
@@ -142,6 +147,7 @@ class AnkiNoteGenerator:
         front = clear_string(row[FIELDS_EXCEL.get("front_text") if CONSOLE_USED else self.selected_native_lang_text])
         back = clear_string(row[FIELDS_EXCEL.get("back_text") if CONSOLE_USED else self.selected_foreign_lang_text])
         example = clear_string(row[FIELDS_EXCEL.get("example") if CONSOLE_USED else self.selected_example_field])
+        print("ROW: ",front, back, example)
 
         if (front not in [note["fields"][FIELDS.get("front_text")]["value"].rstrip() for note in self.cards_in_deck if front == note["fields"][FIELDS.get("front_text")]["value"].rstrip()]
             and back not in [note["fields"][FIELDS.get("back_text")]["value"].rstrip() for note in self.cards_in_deck if back == note["fields"][FIELDS.get("back_text")]["value"].rstrip()]):
@@ -234,11 +240,3 @@ class AnkiNoteGenerator:
         """Run the coroutine in an event loop"""
         return asyncio.run(self.noteCreator(row))
 
-
-if CONSOLE_USED:
-    while True:
-        data = str(input("Type in a directory to excel data with words to ANKI integrator: "))
-        generator = AnkiNoteGenerator(data)
-        if os.path.exists(data):
-            asyncio.run(generator.main())
-            break
