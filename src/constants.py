@@ -1,7 +1,7 @@
 import logging
 
 __name__ = "Anki notes creator"
-__version = "0.2.0"
+__version = "2.0.0"
 __author__ = "Wojciech Sołyga"
 
 CONSOLE_USED = False
