@@ -94,7 +94,7 @@ class Logger:
     """
     Logging client for unique logging system for client
     """
-    def __init__(self, name: str, log_file: str = "flashcards_creator_log.log"):
+    def __init__(self, name: str, log_file: str = os.path.join(Path(__file__).parent, "flashcards_creator_log.log")):
         # Create logger
         self.logger = logging.getLogger(name)
         self.handler = logging.FileHandler(log_file)
