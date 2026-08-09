@@ -42,7 +42,7 @@ class AnkiClientConsole:
     def getAllCardsInDeck(self):
         return [
             card for card in self.getCardsDetails(self.findAllNotes()) \
-            if card != {} and card["modelName"] == MODEL_NAME
+            if card != {} and card["modelName"] == MODEL_NAME 
         ]
 
     @staticmethod
@@ -175,13 +175,13 @@ class AnkiClientDesktop:
     def getAllCardsInDeck(self):
         return [
             card for card in self.getCardsDetails(self.findAllNotes())# \
-            if card != {} and card["modelName"] == MODEL_NAME
+            if card != {} and card["modelName"] == self.parent.settings_dlg.selected_model_name
         ]
 
     def getAllModels(self) -> list:
         return self.mw.col.models.all()
 
-    def getAllMecks(self) -> list:
+    def getAllDecks(self) -> list:
         return self.mw.col.decks.all()
 
     def getModelsNames(self) -> list:
@@ -214,7 +214,7 @@ class AnkiClientDesktop:
     def getDecksAndID(self):
         return {
             deck["name"]:deck["id"] for deck \
-            in self.getAllMecks()
+            in self.getAllDecks()
         }
 
     def getModelsAndID(self):
@@ -264,7 +264,7 @@ class AnkiClientDesktop:
         # self.logger.debug(note_params.items())
 
         note = self.createNote(
-            CURR_LANG,
+            deck_name,
             params = note_params
         )
         
@@ -290,12 +290,13 @@ class AnkiBackend:
     def __init__(self, parent):
         self.parent = parent
         self.mw = self.parent.mw
+        self.logger = self.parent.logger
 
     def cardsInfo(self, cards) -> list:
         result = []
         for cid in cards:
             try:
-                card = self.mw.col.getCard(cid)
+                card = self.mw.col.get_card(cid)
                 model = card.note_type()
                 note = card.note()
                 fields = {}
@@ -303,8 +304,6 @@ class AnkiBackend:
                     order = info['ord']
                     name = info['name']
                     fields[name] = {'value': note.fields[order], 'order': order}
-                states = self.mw.col._backend.get_scheduling_states(card.id)
-                nextReviews = self.mw.col._backend.describe_next_states(states)
 
                 result.append({
                     'cardId': card.id,
@@ -328,7 +327,6 @@ class AnkiBackend:
                     'lapses': card.lapses,
                     'left': card.left,
                     'mod': card.mod,
-                    'nextReviews': list(nextReviews),
                     'flags': card.flags,
                 })
             except FileNotFoundError:

@@ -48,7 +48,6 @@ class AnkiNoteGenerator:
 
     async def main(self, input_path):
         self.data = input_path
-
         self.cards_in_deck = self.anki_client_console.getAllCardsInDeck() if CONSOLE_USED \
                                 else self.anki_client_desktop.getAllCardsInDeck()
         if not CONSOLE_USED:
@@ -66,7 +65,7 @@ class AnkiNoteGenerator:
 
         self.fields = self.anki_client_console.getFieldsByModelName(MODEL_NAME) if CONSOLE_USED \
                         else self.anki_client_desktop.getFieldsByModelName(self.selected_model_name)
-
+        
         is_valid_struct = self.anki_modules_validator.validateStructure(
             input_structure=self.fields,
             dest_structure=FIELDS
