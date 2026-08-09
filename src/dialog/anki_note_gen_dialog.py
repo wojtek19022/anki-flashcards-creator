@@ -63,6 +63,11 @@ class AnkiNoteGenDialog(QtWidgets.QDialog, MAIN_DLG_FORM):
         
         if os.path.exists(self.input_path):
             asyncio.run(self.note_generator.main(self.input_path))
+            QMessageBox.information(
+                self.mw,
+                'Anki notes creator',
+                f"Program finished working. Please check deck {self.settings_dlg.selected_deck_name} for new notes."
+            )
 
     def openFilesWindow(self):
         file_dlg = QtWidgets.QFileDialog
